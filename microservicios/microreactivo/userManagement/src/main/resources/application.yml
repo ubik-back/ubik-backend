@@ -6,9 +6,9 @@ spring:
     name: userManagement-service
 
   r2dbc:
-    url: ${DB_R2DBC_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${SPRING_R2DBC_URL}
+    username: ${SPRING_R2DBC_USERNAME}
+    password: ${SPRING_R2DBC_PASSWORD}
 
   sql:
     init:
