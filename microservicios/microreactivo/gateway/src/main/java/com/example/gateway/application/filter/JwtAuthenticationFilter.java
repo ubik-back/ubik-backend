@@ -78,8 +78,24 @@ public class JwtAuthenticationFilter implements WebFilter {
     }
 
     private boolean isPublicPath(String path) {
-        return path.startsWith("/api/auth/");
+    // Rutas de autenticación
+    if (path.startsWith("/api/auth/")) {
+        return true;
     }
+    
+    // Actuator endpoints
+    if (path.startsWith("/actuator/")) {
+        return true;
+    }
+    
+    // Moteles (solo lectura, sin autenticación)
+    if (path.equals("/api/motels") || path.startsWith("/api/motels/")) {
+        // Solo permitir GET sin autenticación
+        return true;
+    }
+    
+    return false;
+}
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
