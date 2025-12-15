@@ -1,104 +1,75 @@
-server:
-  port: 8080
+services:
 
-spring:
-  cloud:
-    gateway: 
-      globalcors:
-        cors-configurations:
-          '[/**]': 
-            allowedOriginPatterns: "*"
-            allowedMethods: 
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
-            allowedHeaders:  "*"
-            allowCredentials: true
-            maxAge: 3600
+  usermanagement:
+    build:
+      context: .
+      dockerfile: userManagement/Dockerfile
+    container_name: usermanagement-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      DB_R2DBC_URL: ${SPRING_R2DBC_URL}
+      DB_USERNAME: ${SPRING_R2DBC_USERNAME}
+      DB_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
-      routes:
-        # MICROSERVICIO userManagement (autenticación: login, register)
-        - id: userManagement-auth
-          uri: http://usermanagement:8081
-          predicates:
-            - Path=/api/auth/**
-          filters:
-            - StripPrefix=0
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    depends_on:
+      usermanagement:
+        condition: service_healthy
+    networks:
+      - ubik-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
-        # MICROSERVICIO userManagement (datos del usuario)
-        - id: userManagement-profile
-          uri: http://usermanagement-service:8081
-          predicates:
-            - Path=/api/user/**
-          filters:
-            - StripPrefix=0
-            - name: AuthorizationFilter
+  motel-management:
+    build:
+      context: .
+      dockerfile: motelManegement/Dockerfile
+    container_name: motel-management-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+    networks:
+      - ubik-network
+    depends_on:
+      usermanagement:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
-        # Products Service (si lo tienes)
-        - id: products
-          uri: http://products:8082  # ✅ Cambio aquí
-          predicates:
-            - Path=/api/products/**
-          filters:
-            - StripPrefix=1
-            - name: AuthorizationFilter
-
-        # Motel Management - Motels
-        - id: motel-management-motels
-          uri: http://motel-management-service:8083
-          predicates:
-            - Path=/api/motels/**
-          filters:
-            - StripPrefix=0
-
-        # Motel Management - Rooms
-        - id: motel-management-rooms
-          uri: http://motel-management:8083  # ✅ Cambio aquí
-          predicates:
-            - Path=/api/rooms/**
-          filters:
-            - StripPrefix=0
-            - name: AuthorizationFilter
-
-        # Motel Management - Services
-        - id: motel-management-services
-          uri: http://motel-management:8083  # ✅ Cambio aquí
-          predicates:
-            - Path=/api/services/**
-          filters:
-            - StripPrefix=0
-            - name: AuthorizationFilter
-
-        # Booking Service - Reservations
-        - id: booking-service
-          uri: http://motel-management:8083  # ✅ Cambio aquí
-          predicates:
-            - Path=/api/bookings/**
-          filters:
-            - StripPrefix=0
-            - name: AuthorizationFilter
-
-      trusted-proxies: '127\.0\.0\.1|::1'
-
-# JWT Configuration
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION:86400000}
-
-# Logging configuration
-logging:
-  level:
-    com.example.gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,info,metrics,gateway"
-  endpoint:
-    health:
-      show-details: always
+networks:
+  ubik-network:
+    driver: bridge
