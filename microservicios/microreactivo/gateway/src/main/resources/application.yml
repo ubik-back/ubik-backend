@@ -1,7 +1,6 @@
 server:
   port: 8080
 
-
 spring:
   cloud:
     gateway: 
@@ -38,9 +37,9 @@ spring:
             - StripPrefix=0
             - name: AuthorizationFilter
 
-        # Products Service
+        # Products Service (si lo tienes)
         - id: products
-          uri: http://localhost:8082
+          uri: http://products:8082  # ✅ Cambio aquí
           predicates:
             - Path=/api/products/**
           filters:
@@ -49,7 +48,7 @@ spring:
 
         # Motel Management - Motels
         - id: motel-management-motels
-          uri: http://localhost:8083
+          uri: http://motel-management:8083  # ✅ Cambio aquí
           predicates:
             - Path=/api/motels/**
           filters:
@@ -57,7 +56,7 @@ spring:
 
         # Motel Management - Rooms
         - id: motel-management-rooms
-          uri: http://localhost:8083
+          uri: http://motel-management:8083  # ✅ Cambio aquí
           predicates:
             - Path=/api/rooms/**
           filters:
@@ -66,7 +65,7 @@ spring:
 
         # Motel Management - Services
         - id: motel-management-services
-          uri: http://localhost:8083
+          uri: http://motel-management:8083  # ✅ Cambio aquí
           predicates:
             - Path=/api/services/**
           filters:
@@ -75,14 +74,13 @@ spring:
 
         # Booking Service - Reservations
         - id: booking-service
-          uri: http://localhost:8083
+          uri: http://motel-management:8083  # ✅ Cambio aquí
           predicates:
             - Path=/api/bookings/**
           filters:
             - StripPrefix=0
             - name: AuthorizationFilter
 
-      # Para evitar problemas de proxies locales
       trusted-proxies: '127\.0\.0\.1|::1'
 
 # JWT Configuration
@@ -101,3 +99,6 @@ management:
     web:
       exposure:
         include: "health,info,metrics,gateway"
+  endpoint:
+    health:
+      show-details: always
