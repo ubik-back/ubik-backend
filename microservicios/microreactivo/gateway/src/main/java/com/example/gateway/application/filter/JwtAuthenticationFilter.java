@@ -1,6 +1,7 @@
 package com.example.gateway.application.filter;
 
 import com.example.gateway.domain.port.out.JwtValidatorPort;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,9 +30,10 @@ public class JwtAuthenticationFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 
         String path = exchange.getRequest().getPath().value();
+        HttpMethod method = exchange.getRequest().getMethod();
 
-        // 1. Rutas públicas (no requieren JWT)
-        if (isPublicPath(path)) {
+        // 1. Rutas completamente públicas (no requieren JWT)
+        if (isPublicPath(path, method)) {
             return chain.filter(exchange);
         }
 
@@ -49,13 +51,14 @@ public class JwtAuthenticationFilter implements WebFilter {
             Map<String, Object> claims = jwtValidatorPort.validateToken(token);
 
             String username = claims.get("sub").toString();
-            String role     = claims.get("role").toString();
+            Object roleObj = claims.get("role");
+            String role = roleObj != null ? roleObj.toString() : "USER";
 
             // 4. Mutar request y agregar headers para microservicios
             ServerHttpRequest mutatedRequest = exchange.getRequest()
                     .mutate()
                     .header("X-User-Username", username)
-                    .header("X-User-Role", role) // <-- CORREGIDO
+                    .header("X-User-Role", role)
                     .build();
 
             ServerWebExchange mutatedExchange = exchange.mutate()
@@ -77,32 +80,34 @@ public class JwtAuthenticationFilter implements WebFilter {
         }
     }
 
-    private boolean isPublicPath(String path) {
-    // Rutas de autenticación
-    if (path.startsWith("/api/auth/")) {
-        return true;
+    /**
+     * Determina si una ruta es pública (no requiere autenticación)
+     */
+    private boolean isPublicPath(String path, HttpMethod method) {
+        // Rutas de autenticación
+        if (path.startsWith("/api/auth/")) {
+            return true;
+        }
+        
+        // Actuator endpoints
+        if (path.startsWith("/actuator/")) {
+            return true;
+        }
+        
+        // SOLO LECTURA (GET) es pública para estos recursos
+        if (method == HttpMethod.GET) {
+            return path.startsWith("/api/motels") 
+                || path.startsWith("/api/rooms") 
+                || path.startsWith("/api/services");
+        }
+        
+        // Todo lo demás requiere autenticación
+        return false;
     }
-    
-    // Actuator endpoints
-    if (path.startsWith("/actuator/")) {
-        return true;
-    }
-    
-    // Moteles (solo lectura, sin autenticación)
-    if (path.equals("/api/motels") || path.startsWith("/api/motels/")) {
-        // Solo permitir GET sin autenticación
-        return true;
-    }
-    
-    return false;
-}
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         return exchange.getResponse().setComplete();
     }
 }
-
-
-
 
