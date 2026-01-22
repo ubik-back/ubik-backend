@@ -3,6 +3,7 @@ package com.example.gateway.application.config;
 import com.example.gateway.application.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -27,22 +28,53 @@ public class SecurityConfig {
                 
                 // Configurar reglas de autorización
                 .authorizeExchange(exchanges -> exchanges
-                        // Rutas de autenticación - públicas
+                        // ========================================
+                        // RUTAS COMPLETAMENTE PÚBLICAS (sin token)
+                        // ========================================
+                        
+                        // Autenticación - público
                         .pathMatchers("/api/auth/**").permitAll()
                         
-                        // Actuator - público (o restringir según necesites)
+                        // Actuator - público
                         .pathMatchers("/actuator/**").permitAll()
                         
-                        // Moteles - lectura pública (GET), escritura requiere auth
-                        .pathMatchers("/api/motels/**").permitAll()
-                        .pathMatchers("/api/rooms/**").permitAll()
-                        .pathMatchers("/api/services/**").permitAll()
+                        // Moteles - SOLO lectura es pública
+                        .pathMatchers(HttpMethod.GET, "/api/motels/**").permitAll()
+                        
+                        // Habitaciones - SOLO lectura es pública
+                        .pathMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
+                        
+                        // Servicios - SOLO lectura es pública
+                        .pathMatchers(HttpMethod.GET, "/api/services/**").permitAll()
+                        
+                        // ========================================
+                        // RUTAS QUE REQUIEREN AUTENTICACIÓN
+                        // ========================================
+                        
+                        // Cualquier POST, PUT, DELETE en motels/rooms/services
+                        .pathMatchers(HttpMethod.POST, "/api/motels/**").authenticated()
+                        .pathMatchers(HttpMethod.PUT, "/api/motels/**").authenticated()
+                        .pathMatchers(HttpMethod.DELETE, "/api/motels/**").authenticated()
+                        
+                        .pathMatchers(HttpMethod.POST, "/api/rooms/**").authenticated()
+                        .pathMatchers(HttpMethod.PUT, "/api/rooms/**").authenticated()
+                        .pathMatchers(HttpMethod.DELETE, "/api/rooms/**").authenticated()
+                        
+                        .pathMatchers(HttpMethod.POST, "/api/services/**").authenticated()
+                        .pathMatchers(HttpMethod.PUT, "/api/services/**").authenticated()
+                        .pathMatchers(HttpMethod.DELETE, "/api/services/**").authenticated()
+                        
+                        // Reservas - siempre requieren autenticación
+                        .pathMatchers("/api/reservations/**").authenticated()
+                        
+                        // Perfil de usuario - requiere autenticación
+                        .pathMatchers("/api/user/**").authenticated()
                         
                         // Todo lo demás requiere autenticación
                         .anyExchange().authenticated()
                 )
                 
-                // IMPORTANTE: Activar el filtro JWT
+                // Activar el filtro JWT
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 
                 .build();
