@@ -29,7 +29,10 @@ fi
 # Obtener el usuario real (no root)
 REAL_USER="${SUDO_USER:-$USER}"
 USER_HOME=$(eval echo ~$REAL_USER)
-PROJECT_DIR="$USER_HOME/Ubik-App/microservicios/microreactivo"
+
+# Detectar automáticamente la ruta del proyecto
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 echo -e "${YELLOW}📂 Directorio del proyecto: $PROJECT_DIR${NC}"
 echo -e "${YELLOW}👤 Usuario: $REAL_USER${NC}"
@@ -39,6 +42,13 @@ echo ""
 if [ ! -d "$PROJECT_DIR" ]; then
     echo -e "${RED}❌ No se encontró el directorio del proyecto${NC}"
     echo "   Buscado en: $PROJECT_DIR"
+    exit 1
+fi
+
+# Verificar que existe docker-compose.yml
+if [ ! -f "$PROJECT_DIR/docker-compose.yml" ]; then
+    echo -e "${RED}❌ No se encontró docker-compose.yml en el proyecto${NC}"
+    echo "   Buscado en: $PROJECT_DIR/docker-compose.yml"
     exit 1
 fi
 
