@@ -109,16 +109,42 @@ if [ -f .env ]; then
     export $(cat .env | grep -v '^#' | xargs)
 fi
 
-# Iniciar todos los servicios
-log "🚀 Iniciando servicios con docker-compose..."
-docker-compose up -d 2>&1 | tee -a "$LOG_FILE"
+# Limpiar contenedores anteriores para evitar problemas de metadata
+log "🧹 Limpiando contenedores anteriores..."
+docker-compose down --remove-orphans 2>&1 | tee -a "$LOG_FILE" || true
 
-if [ ${PIPESTATUS[0]} -eq 0 ]; then
-    log "✅ Servicios iniciados correctamente"
-else
-    log "❌ Error al iniciar servicios"
-    exit 1
+# Eliminar contenedores huérfanos manualmente
+log "🗑️  Eliminando contenedores huérfanos..."
+docker rm -f $(docker ps -aq) 2>&1 | tee -a "$LOG_FILE" || true
+
+# Intentar iniciar los servicios
+log "🚀 Iniciando servicios con docker-compose..."
+if ! docker-compose up -d 2>&1 | tee -a "$LOG_FILE"; then
+    log "⚠️  Primer intento falló, realizando limpieza profunda..."
+    
+    # Limpieza más agresiva
+    log "🧹 Limpieza profunda del sistema..."
+    docker-compose down --remove-orphans -v 2>&1 | tee -a "$LOG_FILE" || true
+    docker rm -f $(docker ps -aq) 2>&1 | tee -a "$LOG_FILE" || true
+    docker rmi -f $(docker images 'microreactivo*' -q) 2>&1 | tee -a "$LOG_FILE" || true
+    docker system prune -af 2>&1 | tee -a "$LOG_FILE" || true
+    
+    # Segundo intento con rebuild completo
+    log "🔨 Reconstruyendo imágenes desde cero..."
+    if ! docker-compose build --no-cache 2>&1 | tee -a "$LOG_FILE"; then
+        log "❌ Error al reconstruir imágenes"
+        exit 1
+    fi
+    
+    log "🚀 Iniciando servicios después de reconstruir..."
+    if ! docker-compose up -d 2>&1 | tee -a "$LOG_FILE"; then
+        log "❌ Error al iniciar servicios después de reconstruir"
+        log "💡 Revisa los logs con: docker-compose logs"
+        exit 1
+    fi
 fi
+
+log "✅ Servicios iniciados correctamente"
 
 # Esperar a que PostgreSQL esté listo
 log "⏳ Esperando a que PostgreSQL esté listo..."
