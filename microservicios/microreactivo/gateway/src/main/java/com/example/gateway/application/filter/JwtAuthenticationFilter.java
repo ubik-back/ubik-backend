@@ -17,6 +17,11 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Filtro JWT para Spring Cloud Gateway
+ * 
+ * CRÍTICO: Ignora OPTIONS requests para permitir CORS preflight
+ */
 @Component
 public class JwtAuthenticationFilter implements WebFilter {
 
@@ -31,6 +36,11 @@ public class JwtAuthenticationFilter implements WebFilter {
 
         String path = exchange.getRequest().getPath().value();
         HttpMethod method = exchange.getRequest().getMethod();
+
+        // CRÍTICO: Ignorar OPTIONS (CORS preflight)
+        if (method == HttpMethod.OPTIONS) {
+            return chain.filter(exchange);
+        }
 
         // 1. Rutas completamente públicas (no requieren JWT)
         if (isPublicPath(path, method)) {
@@ -110,4 +120,3 @@ public class JwtAuthenticationFilter implements WebFilter {
         return exchange.getResponse().setComplete();
     }
 }
-
