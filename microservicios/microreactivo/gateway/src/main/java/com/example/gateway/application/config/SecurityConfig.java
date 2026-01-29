@@ -9,6 +9,11 @@ import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
+/**
+ * Configuración de seguridad para Spring Cloud Gateway
+ * 
+ * CRÍTICO: Permite OPTIONS sin autenticación para soportar CORS preflight
+ */
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
@@ -28,6 +33,12 @@ public class SecurityConfig {
                 
                 // Configurar reglas de autorización
                 .authorizeExchange(exchanges -> exchanges
+                        // ========================================
+                        // CRÍTICO: Permitir OPTIONS sin autenticación
+                        // (requerido para CORS preflight)
+                        // ========================================
+                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        
                         // ========================================
                         // RUTAS COMPLETAMENTE PÚBLICAS (sin token)
                         // ========================================
@@ -74,7 +85,7 @@ public class SecurityConfig {
                         .anyExchange().authenticated()
                 )
                 
-                // Activar el filtro JWT
+                // Activar el filtro JWT DESPUÉS de CORS
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 
                 .build();
