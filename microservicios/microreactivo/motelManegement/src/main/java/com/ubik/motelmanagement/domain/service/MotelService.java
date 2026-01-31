@@ -57,7 +57,9 @@ public class MotelService implements MotelUseCasePort {
                             motel.city(),
                             existingMotel.propertyId(),
                             existingMotel.dateCreated(),
-                            motel.imageUrls()
+                            motel.imageUrls(),
+                            motel.latitude(),
+                            motel.longitude()
                     );
                     return validateMotel(updatedMotel)
                             .then(motelRepositoryPort.update(updatedMotel));
@@ -91,6 +93,15 @@ public class MotelService implements MotelUseCasePort {
         if (motel.imageUrls() != null && motel.imageUrls().size() > 10) {
             return Mono.error(new IllegalArgumentException("No se pueden agregar más de 10 imágenes"));
         }
+        
+        // Validar coordenadas geográficas
+        if (motel.latitude() != null && (motel.latitude() < -90.0 || motel.latitude() > 90.0)) {
+            return Mono.error(new IllegalArgumentException("La latitud debe estar entre -90 y 90"));
+        }
+        if (motel.longitude() != null && (motel.longitude() < -180.0 || motel.longitude() > 180.0)) {
+            return Mono.error(new IllegalArgumentException("La longitud debe estar entre -180 y 180"));
+        }
+        
         return Mono.empty();
     }
 }

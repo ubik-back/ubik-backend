@@ -19,6 +19,8 @@ public record MotelEntity(
         String description,
         String city,
         @Column("property_id") Long propertyId,
-        @Column("date_created") LocalDateTime dateCreated
+        @Column("date_created") LocalDateTime dateCreated,
+        Double latitude,
+        Double longitude
 ) {
 }

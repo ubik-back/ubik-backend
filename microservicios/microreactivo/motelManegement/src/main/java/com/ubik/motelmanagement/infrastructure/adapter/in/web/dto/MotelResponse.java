@@ -15,6 +15,8 @@ public record MotelResponse(
         String city,
         Long propertyId,
         LocalDateTime dateCreated,
-        List<String> imageUrls
+        List<String> imageUrls,
+        Double latitude,
+        Double longitude
 ) {
 }

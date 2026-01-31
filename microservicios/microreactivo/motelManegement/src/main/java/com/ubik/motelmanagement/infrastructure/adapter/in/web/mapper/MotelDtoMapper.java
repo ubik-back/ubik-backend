@@ -32,7 +32,9 @@ public class MotelDtoMapper {
                 request.city(),
                 request.propertyId(),
                 LocalDateTime.now(),
-                request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>()
+                request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>(),
+                request.latitude(),
+                request.longitude()
         );
     }
 
@@ -52,7 +54,9 @@ public class MotelDtoMapper {
                 request.city(),
                 null, // Se mantendrá el existente
                 null,  // Se mantendrá la existente
-                request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>()
+                request.imageUrls() != null ? new ArrayList<>(request.imageUrls()) : new ArrayList<>(),
+                request.latitude(),
+                request.longitude()
         );
     }
 
@@ -72,7 +76,9 @@ public class MotelDtoMapper {
                 motel.city(),
                 motel.propertyId(),
                 motel.dateCreated(),
-                motel.imageUrls()
+                motel.imageUrls(),
+                motel.latitude(),
+                motel.longitude()
         );
     }
 }

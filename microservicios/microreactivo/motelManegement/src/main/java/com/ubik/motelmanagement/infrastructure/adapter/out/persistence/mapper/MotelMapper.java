@@ -29,7 +29,9 @@ public class MotelMapper {
                 entity.city(),
                 entity.propertyId(),
                 entity.dateCreated(),
-                List.of() // Lista vacía por defecto
+                List.of(), // Lista vacía por defecto
+                entity.latitude(),
+                entity.longitude()
         );
     }
 
@@ -49,7 +51,9 @@ public class MotelMapper {
                 entity.city(),
                 entity.propertyId(),
                 entity.dateCreated(),
-                imageUrls != null ? imageUrls : List.of()
+                imageUrls != null ? imageUrls : List.of(),
+                entity.latitude(),
+                entity.longitude()
         );
     }
 
@@ -68,7 +72,9 @@ public class MotelMapper {
                 motel.description(),
                 motel.city(),
                 motel.propertyId(),
-                motel.dateCreated()
+                motel.dateCreated(),
+                motel.latitude(),
+                motel.longitude()
         );
     }
 }

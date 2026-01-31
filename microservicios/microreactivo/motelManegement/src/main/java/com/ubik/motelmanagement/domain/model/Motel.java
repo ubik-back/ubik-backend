@@ -16,7 +16,9 @@ public record Motel(
         String city,
         Long propertyId,
         LocalDateTime dateCreated,
-        List<String> imageUrls  // Nueva propiedad para URLs de imágenes
+        List<String> imageUrls,
+        Double latitude,   
+        Double longitude   
 ) {
     // Constructor para creación de nuevos moteles (sin ID)
     public static Motel createNew(
@@ -26,9 +28,23 @@ public record Motel(
             String description,
             String city,
             Long propertyId,
-            List<String> imageUrls
+            List<String> imageUrls,
+            Double latitude,
+            Double longitude
     ) {
-        return new Motel(null, name, address, phoneNumber, description, city, propertyId, LocalDateTime.now(), imageUrls);
+        return new Motel(
+                null, 
+                name, 
+                address, 
+                phoneNumber, 
+                description, 
+                city, 
+                propertyId, 
+                LocalDateTime.now(), 
+                imageUrls,
+                latitude,
+                longitude
+        );
     }
 
     // Constructor para actualización (mantiene ID y fecha de creación)
@@ -38,8 +54,22 @@ public record Motel(
             String phoneNumber,
             String description,
             String city,
-            List<String> imageUrls
+            List<String> imageUrls,
+            Double latitude,
+            Double longitude
     ) {
-        return new Motel(this.id, name, address, phoneNumber, description, city, this.propertyId, this.dateCreated, imageUrls);
+        return new Motel(
+                this.id, 
+                name, 
+                address, 
+                phoneNumber, 
+                description, 
+                city, 
+                this.propertyId, 
+                this.dateCreated, 
+                imageUrls,
+                latitude,
+                longitude
+        );
     }
 }
