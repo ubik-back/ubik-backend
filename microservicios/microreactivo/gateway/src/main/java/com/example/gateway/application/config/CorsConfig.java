@@ -23,7 +23,7 @@ public class CorsConfig {
         CorsConfiguration corsConfig = new CorsConfiguration();
         
         // Permitir origen específico de Angular (NO usar "*" con credentials)
-        corsConfig.setAllowedOrigins(List.of("http://localhost:4200"));
+        corsConfig.setAllowedOrigins(List.of("*"));
         
         // Permitir TODOS los métodos HTTP (especialmente OPTIONS para preflight)
         corsConfig.setAllowedMethods(Arrays.asList(
@@ -36,15 +36,7 @@ public class CorsConfig {
             "HEAD"
         ));
         
-        // CRÍTICO: Permitir Authorization header (requerido para JWT)
-        corsConfig.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Accept",
-            "X-Requested-With",
-            "X-User-Username",
-            "X-User-Role"
-        ));
+        corsConfig.setAllowedHeaders(List.of("*"));
         
         // Exponer headers que Angular necesita leer
         corsConfig.setExposedHeaders(Arrays.asList(
