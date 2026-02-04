@@ -10,6 +10,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * Servicio de perfil de usuario
+ * 
+ * Principio SOLID: Single Responsibility - Solo maneja lógica de perfil
+ */
 @Service
 public class UserProfileService implements UserProfileUseCase {
 
@@ -39,13 +44,22 @@ public class UserProfileService implements UserProfileUseCase {
                             request.anonymous() != null ? request.anonymous() : existingUser.anonymous(),
                             existingUser.roleId(),
                             existingUser.resetToken(),
-                            existingUser.resetTokenExpiry()
+                            existingUser.resetTokenExpiry(),
+                            // Nuevos campos con lógica de actualización
+                            request.longitude() != null ? request.longitude() : existingUser.longitude(),
+                            request.latitude() != null ? request.latitude() : existingUser.latitude(),
+                            request.birthDate() != null ? request.birthDate() : existingUser.birthDate()
                     );
 
                     return userRepository.save(updatedUser)
                             .map(this::toResponse);
                 });
     }
+    
+    /**
+     * Convierte User a UserProfileResponse
+     * Incluye cálculo de edad
+     */
     private UserProfileResponse toResponse(User user) {
         return new UserProfileResponse(
                 user.id(),
@@ -54,7 +68,11 @@ public class UserProfileService implements UserProfileUseCase {
                 user.phoneNumber(),
                 user.createdAt(),
                 user.anonymous(),
-                user.roleId()
+                user.roleId(),
+                user.longitude(),
+                user.latitude(),
+                user.birthDate(),
+                user.calculateAge()  
         );
     }
 }

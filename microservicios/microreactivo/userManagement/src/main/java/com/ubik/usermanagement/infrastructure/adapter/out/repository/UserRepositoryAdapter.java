@@ -7,6 +7,11 @@ import com.ubik.usermanagement.infrastructure.adapter.out.repository.mapper.User
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+/**
+ * Adaptador del repositorio de usuarios
+ * 
+ * Principio SOLID: Dependency Inversion - Implementa puerto definido en dominio
+ */
 @Component
 public class UserRepositoryAdapter implements UserRepositoryPort {
 
@@ -17,6 +22,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         this.userRepository = userRepository;
         this.mapper = mapper;
     }
+    
     @Override
     public Mono<User> findByUsername(String username) {
         return userRepository.findByUsername(username).map(mapper::toDomain);
@@ -51,9 +57,13 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                             user.anonymous(),
                             user.roleId(),
                             user.resetToken(),
-                            user.resetTokenExpiry()
+                            user.resetTokenExpiry(),
+                            user.longitude(),
+                            user.latitude(),
+                            user.birthDate()
                     );
-            return userRepository.save(updatedEntity);
-        }).map(mapper::toDomain);
+                    return userRepository.save(updatedEntity);
+                })
+                .map(mapper::toDomain);
     }
 }
