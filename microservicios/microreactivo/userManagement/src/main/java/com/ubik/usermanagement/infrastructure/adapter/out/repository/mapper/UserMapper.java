@@ -4,9 +4,17 @@ import com.ubik.usermanagement.domain.model.User;
 import com.ubik.usermanagement.infrastructure.adapter.out.repository.entity.UserEntity;
 import org.springframework.stereotype.Component;
 
+/**
+ * Mapper bidireccional entre User (dominio) y UserEntity (persistencia)
+ * 
+ * Principio SOLID: Single Responsibility - Solo mapea entre capas
+ */
 @Component
 public class UserMapper {
 
+    /**
+     * Convierte UserEntity (persistencia) a User (dominio)
+     */
     public User toDomain(UserEntity entity) {
         return new User(
                 entity.id(),
@@ -18,10 +26,16 @@ public class UserMapper {
                 entity.anonymous(),
                 entity.roleId(),
                 entity.resetToken(),
-                entity.resetTokenExpiry()
+                entity.resetTokenExpiry(),
+                entity.longitude(),
+                entity.latitude(),
+                entity.birthDate()
         );
     }
 
+    /**
+     * Convierte User (dominio) a UserEntity (persistencia)
+     */
     public UserEntity toEntity(User user) {
         return new UserEntity(
                 user.id(),
@@ -33,7 +47,10 @@ public class UserMapper {
                 user.anonymous(),
                 user.roleId(),
                 user.resetToken(),
-                user.resetTokenExpiry()
+                user.resetTokenExpiry(),
+                user.longitude(),
+                user.latitude(),
+                user.birthDate()
         );
     }
 }

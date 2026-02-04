@@ -14,6 +14,11 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Servicio de gestión de usuarios
+ * 
+ * Principio SOLID: Single Responsibility - Solo maneja lógica de negocio de usuarios
+ */
 @Service
 public class UserService implements UserUseCase {
 
@@ -21,7 +26,10 @@ public class UserService implements UserUseCase {
     private final PasswordEncoder passwordEncoder;
     private final JwtAdapter jwtAdapter;
 
-    public UserService(UserRepositoryPort userRepository, PasswordEncoder passwordEncoder, JwtAdapter jwtAdapter) {
+    public UserService(
+            UserRepositoryPort userRepository, 
+            PasswordEncoder passwordEncoder, 
+            JwtAdapter jwtAdapter) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtAdapter = jwtAdapter;
@@ -29,12 +37,13 @@ public class UserService implements UserUseCase {
 
     @Override
     public Mono<String> register(RegisterRequest request) {
-
         return userRepository.findByUsername(request.username())
-                .flatMap(existing -> Mono.<String>error(new RuntimeException("Username already exists")))
+                .flatMap(existing -> Mono.<String>error(
+                    new RuntimeException("Username already exists")))
                 .switchIfEmpty(
                         userRepository.findByEmail(request.email())
-                                .flatMap(existing -> Mono.<String>error(new RuntimeException("Email already exists")))
+                                .flatMap(existing -> Mono.<String>error(
+                                    new RuntimeException("Email already exists")))
                                 .switchIfEmpty(Mono.defer(() -> {
 
                                     User user = new User(
@@ -45,15 +54,18 @@ public class UserService implements UserUseCase {
                                             null,                    // phoneNumber
                                             null,                    // createdAt
                                             request.anonymous(),
-                                            request.roleId(),        // ahora es Integer
+                                            request.roleId(),
                                             null,                    // resetToken
-                                            null                     // resetTokenExpiry
+                                            null,                    // resetTokenExpiry
+                                            request.longitude(),     // Nueva propiedad
+                                            request.latitude(),      // Nueva propiedad
+                                            request.birthDate()      // Nueva propiedad
                                     );
 
                                     return userRepository.save(user)
                                             .map(saved -> jwtAdapter.generateToken(
                                                     saved.username(),
-                                                    saved.roleId()       // Integer, se envía al JWT
+                                                    saved.roleId()
                                             ));
                                 }))
                 );
@@ -66,13 +78,12 @@ public class UserService implements UserUseCase {
                 .switchIfEmpty(Mono.error(new RuntimeException("Invalid credentials")))
                 .map(user -> jwtAdapter.generateToken(
                         user.username(),
-                        user.roleId()      // Integer para JWT
+                        user.roleId()
                 ));
     }
 
     @Override
     public Mono<String> requestPasswordReset(String email) {
-
         String resetToken = UUID.randomUUID().toString();
 
         return userRepository.findByEmail(email)
@@ -85,9 +96,12 @@ public class UserService implements UserUseCase {
                         user.phoneNumber(),
                         user.createdAt(),
                         user.anonymous(),
-                        user.roleId(),              // Integer
+                        user.roleId(),
                         resetToken,
-                        LocalDateTime.now().plusHours(1)
+                        LocalDateTime.now().plusHours(1),
+                        user.longitude(),      // Mantener valores existentes
+                        user.latitude(),       // Mantener valores existentes
+                        user.birthDate()       // Mantener valores existentes
                 )))
                 .map(user -> resetToken);
     }
@@ -95,7 +109,8 @@ public class UserService implements UserUseCase {
     @Override
     public Mono<String> resetPassword(ResetPasswordRequest request) {
         return userRepository.findByResetToken(request.token())
-                .filter(user -> user.resetTokenExpiry() != null && user.resetTokenExpiry().isAfter(LocalDateTime.now()))
+                .filter(user -> user.resetTokenExpiry() != null 
+                    && user.resetTokenExpiry().isAfter(LocalDateTime.now()))
                 .switchIfEmpty(Mono.error(new RuntimeException("Invalid or expired token")))
                 .flatMap(user -> userRepository.save(new User(
                         user.id(),
@@ -105,11 +120,13 @@ public class UserService implements UserUseCase {
                         user.phoneNumber(),
                         user.createdAt(),
                         user.anonymous(),
-                        user.roleId(),          // Integer
+                        user.roleId(),
                         null,
-                        null
+                        null,
+                        user.longitude(),      // Mantener valores existentes
+                        user.latitude(),       // Mantener valores existentes
+                        user.birthDate()       // Mantener valores existentes
                 )))
                 .map(user -> "Password reset successfully");
     }
 }
-
