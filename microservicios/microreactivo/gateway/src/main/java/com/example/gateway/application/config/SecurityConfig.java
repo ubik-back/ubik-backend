@@ -55,7 +55,7 @@ public class SecurityConfig {
                         // Actuator - público
                         .pathMatchers("/actuator/**").permitAll()
                         
-                        // Moteles - SOLO lectura es pública
+                        // Moteles - SOLO lectura es pública (SOLO APROBADOS)
                         .pathMatchers(HttpMethod.GET, "/api/motels/**").permitAll()
                         
                         // Habitaciones - SOLO lectura es pública
@@ -63,6 +63,13 @@ public class SecurityConfig {
                         
                         // Servicios - SOLO lectura es pública
                         .pathMatchers(HttpMethod.GET, "/api/services/**").permitAll()
+                        
+                        // ========================================
+                        // RUTAS DE ADMINISTRACIÓN (SOLO ROLE = 1)
+                        // ========================================
+                        
+                        // Gestión de aprobación de moteles - SOLO ADMIN
+                        .pathMatchers("/api/admin/motels/**").hasAuthority("ROLE_1")
                         
                         // ========================================
                         // RUTAS QUE REQUIEREN AUTENTICACIÓN
@@ -127,7 +134,8 @@ public class SecurityConfig {
             "Authorization",
             "Content-Type",
             "X-User-Username",
-            "X-User-Role"
+            "X-User-Role",
+            "X-User-Id"
         ));
         
         // Permitir credenciales
