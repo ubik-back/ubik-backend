@@ -9,7 +9,6 @@ interface Card2Info{
   selector: 'app-card-2',
   imports: [],
   templateUrl: './card-2.html',
-  styleUrl: './card-2.css',
 })
 export class Card2 implements OnInit {
   card2: Card2Info ={

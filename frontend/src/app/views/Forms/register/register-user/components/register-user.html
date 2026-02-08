@@ -1,0 +1,80 @@
+
+<div class="flex items-center justify-center px-5 text-white">
+  <div class="w-full max-w-md">
+    
+    <h1 class="text-4xl font-bold mb-8 tracking-wider text-center">CUENTA CLIENTE</h1>
+    
+    
+    <!-- Formulario -->
+      <form
+        [formGroup]="registerForm"
+        (ngSubmit)="onSubmit()"
+        class="flex flex-col gap-5"
+      >
+      
+      <!-- Usuario -->
+      <app-input 
+        label="Nombre de Usuario" 
+        placeholder="Ingrese su nombre de usuario"
+        type="text"
+        formControlName="username">
+      </app-input>
+      
+      <!-- Correo electrónico -->
+      <app-input 
+        label="Correo electrónico" 
+        placeholder="Ingrese su correo"
+        type="email"
+        formControlName="email">
+      </app-input>
+
+      <!-- Numero de teléfono -->
+      <app-input 
+        label="Número de teléfono" 
+        placeholder="Ingrese su número de teléfono"
+        type="tel"
+        formControlName="phoneNumber">
+      </app-input>
+
+      <!-- Fecha de nacimiento (3 campos) -->
+
+          <label class="mb-1 text-white text-sm">Fecha de nacimiento</label>
+          <input 
+            label="Fecha de nacimiento"
+            type="date" 
+            formControlName="birthDate"
+            placeholder="DD"
+            maxlength="2"
+            class="rounded-full p-3 text-black focus:outline-none focus:ring-2 focus:ring-red-600 w-full bg-white text-center" />
+          
+       
+      <!-- Contraseña -->
+      <app-input 
+        label="Contraseña" 
+        formControlName="password"
+        placeholder="Ingrese su contraseña"
+        type="password">
+      </app-input>
+      
+      <!-- Confirmar contraseña -->
+      <app-input 
+        label="Confirmar contraseña" 
+        formControlName="comfirmPassword"
+        placeholder="Confirme su contraseña"
+        type="password">
+      </app-input>
+
+
+        <button
+          type="submit"
+          class="bg-red-600 text-white p-3 rounded w-full"
+        >
+          Registrarse
+        </button>
+      
+      
+    
+    </form>
+    
+  </div>
+</div>

@@ -1,0 +1,133 @@
+<form
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+  class="min-h-screen flex items-center justify-center px-5 text-white"
+>
+  <div class="w-full max-w-4xl">
+
+    <!-- Título -->
+    <h1 class="text-4xl font-bold mb-8 tracking-wider text-center">
+      REGISTRO DEL ESTABLECIMIENTO
+    </h1>
+
+    <!-- Barra de progreso -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm">40%</span>
+      </div>
+      <div class="w-full bg-gray-700 rounded-full h-2">
+        <div
+          class="bg-red-600 h-2 rounded-full transition-all"
+          style="width: 40%"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Columna izquierda -->
+      <div class="flex flex-col gap-5">
+
+        <app-input
+          label="Nombre del establecimiento"
+          placeholder="Motel Paraíso"
+          formControlName="name">
+        </app-input>
+
+        <app-input
+          label="Dirección"
+          placeholder="Calle 10 #15-20, Medellín"
+          formControlName="address">
+        </app-input>
+
+        <app-input
+          label="Ciudad"
+          placeholder="Medellín"
+          formControlName="city">
+        </app-input>
+
+        <app-input
+          label="Teléfono"
+          placeholder="+57 300 123 4567"
+          formControlName="phoneNumber">
+        </app-input>
+
+        <app-input
+          label="Descripción"
+          placeholder="Describe tu establecimiento"
+          formControlName="description">
+        </app-input>
+
+      </div>
+
+      <!-- Columna derecha -->
+      <div class="flex flex-col gap-5">
+
+        <!-- Subida de imágenes -->
+        <div>
+          <label class="mb-2 text-white text-sm block text-right">
+            Imágenes del establecimiento
+          </label>
+
+          <div
+            class="bg-white rounded-lg p-8 flex items-center justify-center h-40 cursor-pointer hover:bg-gray-100 transition-colors"
+            (click)="fileInput.click()"
+          >
+            <div class="text-center text-gray-400">
+              <i class="fas fa-image text-5xl mb-2"></i>
+              <p class="text-sm">
+                {{ images.length > 0 ? images.length + ' imagen(es) seleccionadas' : 'Subir imágenes' }}
+              </p>
+            </div>
+          </div>
+
+          <input
+            #fileInput
+            type="file"
+            accept="image/*"
+            multiple
+            class="hidden"
+            (change)="onImagesSelected($event)"
+          />
+        </div>
+
+        <!-- Coordenadas -->
+        <div class="grid grid-cols-2 gap-4">
+
+          <app-input
+            label="Latitud"
+            placeholder="6.2442"
+            type="number"
+            formControlName="latitude">
+          </app-input>
+
+          <app-input
+            label="Longitud"
+            placeholder="-75.5812"
+            type="number"
+            formControlName="longitude">
+          </app-input>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex gap-4 mt-8">
+      <app-button-01
+        type="button"
+        text="Volver"
+        class="flex-1">
+      </app-button-01>
+
+      <app-button-01
+        type="submit"
+        text="Crear establecimiento"
+        class="flex-1">
+      </app-button-01>
+    </div>
+
+  </div>
+</form>

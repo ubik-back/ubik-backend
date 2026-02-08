@@ -1,0 +1,51 @@
+<article
+  class="bg-[#14090C] rounded-2xl p-4 text-white shadow-lg flex flex-col gap-4"
+>
+  <!-- Imagen + info -->
+  <div class="flex gap-4">
+    <!-- Imagen -->
+    <img
+      src="image"
+      alt="title"
+      class="w-32 h-32 object-cover rounded-xl"
+    />
+
+    <!-- Información -->
+    <div class="flex flex-col gap-2 flex-1">
+      <h3 class="text-lg font-semibold uppercase">
+        {{ title }}
+      </h3>
+
+      <p class="text-sm text-gray-300 flex items-center gap-1">
+        <i class="pi pi-map-marker"></i>
+        {{ location }}, {{adress}}
+      </p>
+
+      <!-- Servicios -->
+      <div class="flex flex-wrap gap-3 text-sm mt-1">
+        @for (service of services; track service.id) {
+          <span class="flex items-center gap-1 text-gray-200">
+            <i [class]="service.icon"></i>
+            {{ service.name }}
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Separador -->
+  <hr class="border-white/10" />
+
+  <!-- Precio -->
+  <div class="flex items-end gap-2">
+    <span class=" font-bold text-red-600">
+      {{ price }}
+    </span>
+    <span class="text-sm text-gray-300">
+      Por {{ hours }} Horas
+    </span>
+  </div>
+
+  <app-button-01 text="Reservar Ahora" routerLink="/"></app-button-01>
+
+</article>

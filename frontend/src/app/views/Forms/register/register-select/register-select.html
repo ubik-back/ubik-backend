@@ -1,0 +1,51 @@
+
+<div class="min-h-90 flex items-center justify-center">
+
+  <div class="flex gap-10 mb-8 flex-col justify-center w-full max-w-md px-4">
+    
+    <button 
+      (click)="onSelectEstablishment()"
+      class="
+      bg-gradient-to-r
+      from-[#6E2A35] 
+      to-[#A72027] 
+      hover:from-[#7E3A45] 
+      hover:to-[#B73037] 
+      rounded-lg 
+      p-4 
+      flex 
+      items-center 
+      justify-between 
+      transition-all 
+      group">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-home text-xl"></i>
+        <span class="font-semibold">Establecimiento</span>
+      </div>
+      <i class="fas fa-arrow-right text-xl opacity-70 group-hover:translate-x-1 transition-transform"></i>
+    </button>
+    
+    <button 
+      (click)="onSelectClient()"
+      class="
+      bg-gradient-to-r 
+      from-[#6E2A35] 
+      to-[#A72027] 
+      hover:from-[#7E3A45] 
+      hover:to-[#B73037] 
+      rounded-lg 
+      p-4 
+      flex 
+      items-center 
+      justify-between 
+      transition-all 
+      group">    
+      <div class="flex items-center gap-3">
+        <i class="fas fa-user text-xl"></i>
+        <span class="font-semibold">Cliente</span>
+      </div>
+      <i class="fas fa-arrow-right text-xl opacity-70 group-hover:translate-x-1 transition-transform"></i>
+    </button>
+    
+  </div>
+</div>

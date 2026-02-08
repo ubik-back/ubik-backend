@@ -1,8 +1,29 @@
 *{box-sizing: border-box;}
 
+html {
+  scroll-behavior: smooth;
+}
+
+
 @import "tailwindcss";
 
 
 body {
-  @apply bg-gradient-to-r from-[#17000B] to-[#350810];
+  @apply bg-linear-to-r from-[#0B0608] to-[#501521];
+}
+
+main {
+  color: #fff;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0; /* el padding se maneja con Tailwind en los componentes */
+}
+
+
+h1,h2,h3,h4,h5,h6{
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
 }

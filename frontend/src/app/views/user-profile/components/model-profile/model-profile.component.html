@@ -1,0 +1,52 @@
+@if (profile) {
+  <div class="text-white">
+    <!-- Header con imagen de fondo -->
+    <div class="relative h-50 w-full">
+      <img
+        src="https://images.unsplash.com/photo-1557683316-973673baf926"
+        alt="Imagen de fondo"
+        class="w-100 h-50 object-cover"
+      />
+
+      <div class="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
+        <div
+          class="w-32 h-32 rounded-full overflow-hidden shadow-xl border-4 border-gray-800"
+        >
+          <img
+            [src]="'https://ui-avatars.com/api/?name=' + profile.username"
+            alt="Imagen de perfil"
+            class="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 pt-20 pb-8 text-center flex flex-col items-center gap-4">
+      <h2 class="text-2xl font-bold mb-2 tracking-wider">
+        {{ profile.username }}
+      </h2>
+
+      <div class="flex flex-col gap-3 w-full max-w-md">
+        <!-- Email -->
+        <p class="text-gray-300">{{ profile.email }}</p>
+
+        <!-- Teléfono -->
+        <p class="text-gray-300">
+          {{ profile.phoneNumber || 'No registrado' }}
+        </p>
+
+        <!-- ID -->
+        <p class="text-gray-300">ID: {{ profile.roleId }}</p>
+      </div>
+
+      <div class="w-full max-w-xs mt-4">
+        <app-button-01
+          [text]="'Editar Perfil'"
+          [routerLink]="'/edit-profile'"
+          [fullWidth]="true"
+        ></app-button-01>
+      </div>
+    </div>
+  </div>
+}

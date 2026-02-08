@@ -1,0 +1,88 @@
+<div class="min-h-screen flex items-center justify-center px-5 text-white">
+  <div class="w-full max-w-2xl">
+    
+    <h1 class="text-4xl font-bold mb-8 tracking-wider text-center">CUENTA ESTABLECIMIENTO</h1>
+    
+    <!-- Barra de progreso -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm">10%</span>
+      </div>
+      <div class="w-full bg-gray-700 rounded-full h-2">
+        <div class="bg-red-600 h-2 rounded-full transition-all" style="width: 10%"></div>
+      </div>
+    </div>
+    
+    <!-- Contenedor principal con 2 columnas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Columna izquierda - Formulario -->
+      <div class="flex flex-col gap-5">
+        
+        <!-- Nombre del dueño -->
+        <app-input 
+          label="Nombre del dueño del establecimiento" 
+          placeholder="Ingrese el nombre completo"
+          type="text">
+        </app-input>
+        
+        <!-- Correo del dueño -->
+        <app-input 
+          label="Correo del dueño del establecimiento" 
+          placeholder="Ingrese el correo"
+          type="email">
+        </app-input>
+        
+        <!-- Número de identificación CC -->
+        <app-input 
+          label="Numero De identificación CC" 
+          placeholder="Ingrese el número de CC"
+          type="text">
+        </app-input>
+        
+      </div>
+      
+      <!-- Columna derecha - Subida de fotos -->
+      <div class="flex flex-col gap-5">
+        
+        <!-- Foto frontal CC -->
+        <div>
+          <label class="mb-2 text-white text-sm block text-right">Foto frontal del documento de identidad CC</label>
+          <div class="bg-white rounded-lg p-8 flex items-center justify-center h-32 cursor-pointer hover:bg-gray-100 transition-colors">
+            <div class="text-center text-gray-400">
+              <i class="fas fa-image text-5xl mb-2"></i>
+            </div>
+            <input type="file" accept="image/*" class="hidden" />
+          </div>
+        </div>
+        
+        <!-- Foto trasera CC -->
+        <div>
+          <label class="mb-2 text-white text-sm block text-right">Foto Trasera del documento de identidad CC</label>
+          <div class="bg-white rounded-lg p-8 flex items-center justify-center h-32 cursor-pointer hover:bg-gray-100 transition-colors">
+            <div class="text-center text-gray-400">
+              <i class="fas fa-image text-5xl mb-2"></i>
+            </div>
+            <input type="file" accept="image/*" class="hidden" />
+          </div>
+        </div>
+        
+      </div>
+      
+    </div>
+    
+    <!-- Botones de navegación -->
+    <div class="flex gap-4 mt-8">
+      <app-button-01 
+        text="Volver"
+        class="flex-1">
+      </app-button-01>
+      
+      <app-button-01 
+        text="Siguiente"
+        class="flex-1">
+      </app-button-01>
+    </div>
+    
+  </div>
+</div>

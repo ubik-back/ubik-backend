@@ -1,25 +1,47 @@
-<!--
-<aside class="filter">
-    <section class="header">
-        <h2>Filtros</h2>
-        <span id="clear">Limpiar todo</span>
-    </section>
-    <section class="includingServices">
-        @for (service of services; track service.id) {
+<!-- HEADER -->
+<div class="flex px-4 sm:px-6 py-4">
+    
+  <h2>Moteles y Habitaciones</h2>
+  <app-button-02 text="Filtro" (click)="openModal()"></app-button-02>
 
-            <input type="checkbox" name="{name}" id="{name}"><label for="{name}"></label>
-        }@empty{
-            No se encontraron servicios 
-        }
-    </section>
-    <section class="categories">
-         @for (categorie of categories; track categorie.id) {
+</div>
 
-            <input type="checkbox" name="{name}" id="{name}"><label for="{name}"></label>
-        }@empty{
-            No se encontraron servicios 
-        }
-    </section>
+<!-- LAYOUT PRINCIPAL -->
+<div class="flex flex-col lg:flex-row gap-6 px-4 sm:px-6 py-4">
 
-</aside>
--->
+
+  <!-- RESULTADOS -->
+  <section
+    class="
+      results
+      flex flex-col
+      gap-6 sm:gap-10
+      w-full
+      flex-1
+    "
+  >
+    <h2 class="text-xl sm:text-2xl font-bold">
+      Habitaciones disponibles
+    </h2>
+
+    <div class="cards max-h-[90vh] max-w-[70%] overflow-y-auto flex flex-col gap-4">
+
+      @for (item of filteredRooms; track item.room.id) {
+        <app-card-3
+          [title]="item.room.name"
+          [location]="item.location[0].city"
+          [adress]="item.adress"
+          [price]="item.room.price"
+          [hours]="4"
+          [services]="item.room.features"
+        />
+      } 
+    </div>
+  
+  </section>
+
+  <div class="map-section max-w-2xs max-h-[90vh]">
+    <app-map ></app-map>
+  </div>
+
+</div>

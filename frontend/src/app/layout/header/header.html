@@ -1,29 +1,79 @@
-<div class="relative w-full px-5 py-4 flex items-center justify-around gap-[40%] shadow-md">
+<header class="w-full">
 
-    <img [src]="logo" class="h-10">
+  <!-- Top bar -->
+  <div class="flex items-center justify-center lg:justify-between w-full">
+    
+    <app-logo-01></app-logo-01>
 
-    <!-- Checkbox con clase "peer" -->
-    <input type="checkbox" id="menu-toggle" class="hidden peer" />
-
-    <!-- Icono hamburguesa -->
-    <label for="menu-toggle"
-        class="w-[35px] h-[25px] flex flex-col justify-between cursor-pointer">
-        <span class="block h-1 w-full bg-white rounded transition duration-300 ease-in-out"></span>
-        <span class="block h-1 w-full bg-white rounded transition duration-300 ease-in-out"></span>
-        <span class="block h-1 w-full bg-white rounded transition duration-300 ease-in-out"></span>
-    </label>
-
-    <!-- Menú con "peer-checked:" para reaccionar al checkbox -->
-    <nav
-        class="absolute top-[70px] flex flex-col items-center bg-[#19090D] w-[100vw] p-4 gap-2 shadow-lg
-               transition-all duration-300 ease-in-out 
-               opacity-0 -translate-y-5 pointer-events-none
-               peer-checked:opacity-100 peer-checked:translate-y-0 peer-checked:pointer-events-auto">
-
-        <a href="#" class="text-white text-lg transition hover:text-red-500">Explora</a>
-        <a href="#" class="text-white text-lg transition hover:text-red-500">Destinos</a>
-        <a href="#" class="text-white text-lg transition hover:text-red-500">Ofertas</a>
-        <a href="#" class="text-white text-lg transition hover:text-red-500">Inicia sesión</a>
+    <nav class="hidden lg:flex items-center gap-6">
+      <a routerLink="explore" class="text-white hover:text-red-500 transition">
+        Explora
+      </a>
+      <a href="#destines" class="text-white hover:text-red-500 transition">
+        Destinos
+      </a>
+      <a href="#offers" class="text-white hover:text-red-500 transition">
+        Ofertas
+      </a>
+      <a routerLink="login" class="text-white hover:text-red-500 transition">
+        Inicia sesión
+      </a>
     </nav>
+  </div>
 
-</div>
+
+  
+
+  @if (showSearch()) {
+    <section class="w-full min-h-[280px] sm:min-h-[360px] lg:min-h-[425px] flex items-center justify-center">
+
+    <div class="flex flex-col text-center text-white px-4 sm:px-6 max-w-3xl gap-6 sm:gap-10">
+      <h2 class="text-2xl sm:text-3xl lg:text-5xl font-extrabold leading-tight">
+        {{ title }}
+      </h2>
+
+      <p class="text-sm sm:text-base lg:text-lg opacity-90">
+        {{ subtitle }}
+      </p>
+    </div>
+
+  </section>
+
+    <form class="hidden lg:flex w-full justify-center mb-[100px]" method="get">
+      <div class="w-full lg:max-w-5xl flex items-end gap-4 rounded-xl">
+        
+        <div class="flex-1">
+          <label class="text-sm text-white">Ubicación</label>
+          <input
+            type="text"
+            placeholder="Dónde quieres ir?"
+            class="w-full mt-1 bg-white border border-white px-3 py-2 rounded-lg focus:outline-none focus:border-gray-400"
+          />
+        </div>
+
+        <div class="flex-1">
+          <label class="text-sm text-white">Fecha</label>
+          <input
+            type="text"
+            placeholder="Fecha / Hora"
+            class="w-full mt-1 bg-white border border-white px-3 py-2 rounded-lg focus:outline-none focus:border-gray-400"
+          />
+        </div>
+
+        <div class="flex-1">
+          <label class="text-sm text-white">Filtros rápidos</label>
+          <input
+            type="text"
+            placeholder="Jacuzzi, parqueadero..."
+            class="w-full mt-1 bg-white border border-white px-3 py-2 rounded-lg focus:outline-none focus:border-gray-400"
+          />
+        </div>
+
+        <div class="min-w-45">
+          <app-button-01 text="Buscar" [fullWidth]=true></app-button-01>
+        </div>
+      </div>
+    </form>
+  }
+
+</header>

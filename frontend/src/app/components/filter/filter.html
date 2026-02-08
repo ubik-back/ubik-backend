@@ -1,0 +1,98 @@
+  <!-- FILTROS -->
+  
+    <aside
+      class="
+        filter
+        bg-gray-800
+        flex flex-col
+        p-4 sm:p-6
+        rounded-lg
+        w-full
+
+        lg:w-80
+        lg:sticky 
+        lg:top-6
+        
+        h-fit
+        text-amber-50
+      "
+    >
+      <!-- SERVICIOS -->
+      <section class="services mb-4">
+        <h3 class="w-full text-base sm:text-lg font-semibold mb-2">
+          Servicios
+        </h3>
+
+        @for (feat of FEATURES; track feat.id) {
+          <label class="flex items-center gap-2 mb-2 text-sm sm:text-base">
+            <input
+              type="checkbox"
+              [value]="feat.id"
+              (change)="onFeatureChange($event)"
+              class="w-4 h-4"
+            />
+            {{ feat.name }}
+          </label>
+        }
+      </section>
+
+      <!-- CATEGORÍAS -->
+      <section class="categories mb-4">
+        <h3 class="w-full text-base sm:text-lg font-semibold mb-2">
+          Categorías
+        </h3>
+
+        @for (category of CATEGORIES; track category.id) {
+          <label class="flex items-center gap-2 mb-2 text-sm sm:text-base">
+            <input
+              type="checkbox"
+              [value]="category.id"
+              (change)="onCategoryChange($event)"
+              class="w-4 h-4"
+            />
+            {{ category.name }}
+          </label>
+        }
+      </section>
+
+      <!-- UBICACIONES -->
+      <section class="location mb-4">
+        <h3 class="text-base sm:text-lg font-semibold mb-2">
+          Ubicaciones
+        </h3>
+
+        @for (city of LOCATIONS; track city.id) {
+          <label class="flex items-center gap-2 mb-2 text-sm sm:text-base">
+            <input
+              type="checkbox"
+              [value]="city.id"
+              (change)="onLocationChange($event)"
+              class="w-4 h-4"
+            />
+            {{ city.city }}
+          </label>
+        }
+      </section>
+
+      <!-- PRECIO -->
+      <section class="price mb-2">
+        <h3 class="w-full text-base sm:text-lg font-semibold mb-2">
+          Precio máximo
+        </h3>
+
+        <input
+          type="range"
+          min="0"
+          max="50000"
+          step="500"
+          [value]="filters.priceMax"
+          (input)="onPriceChange($event)"
+          title="price"
+          class="w-full"
+        />
+
+        <p class="text-sm sm:text-base mt-2">
+          $ {{ filters.priceMax | number }}
+        </p>
+      </section>
+    </aside>

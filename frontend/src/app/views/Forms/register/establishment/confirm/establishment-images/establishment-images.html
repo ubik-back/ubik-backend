@@ -1,0 +1,64 @@
+<div class="min-h-screen flex items-center justify-center px-5 text-white">
+  <div class="w-full max-w-2xl">
+    
+    <h1 class="text-4xl font-bold mb-8 tracking-wider text-center">CUENTA ESTABLECIMIENTO</h1>
+    
+    <!-- Barra de progreso -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm">80%</span>
+      </div>
+      <div class="w-full bg-gray-700 rounded-full h-2">
+        <div class="bg-red-600 h-2 rounded-full transition-all" style="width: 80%"></div>
+      </div>
+    </div>
+    
+    <!-- Texto descriptivo -->
+    <p class="text-center text-gray-300 mb-8 text-sm">
+      Subir imagenes y videos reales del sitio actualmente
+    </p>
+    
+    <!-- Contenedor de áreas de subida -->
+    <div class="grid grid-cols-2 gap-6 mb-8">
+      
+      <!-- Área de subida 1 -->
+      <div class="bg-white rounded-2xl p-12 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors group min-h-[200px]">
+        <label class="cursor-pointer w-full h-full flex items-center justify-center">
+          <div class="text-center">
+            <div class="bg-gray-800 rounded-xl p-8 inline-block group-hover:scale-105 transition-transform">
+              <i class="fas fa-image text-white text-5xl"></i>
+            </div>
+          </div>
+          <input type="file" accept="image/*,video/*" multiple class="hidden" />
+        </label>
+      </div>
+      
+      <!-- Área de subida 2 -->
+      <div class="bg-white rounded-2xl p-12 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors group min-h-[200px]">
+        <label class="cursor-pointer w-full h-full flex items-center justify-center">
+          <div class="text-center">
+            <div class="bg-gray-800 rounded-xl p-8 inline-block group-hover:scale-105 transition-transform">
+              <i class="fas fa-image text-white text-5xl"></i>
+            </div>
+          </div>
+          <input type="file" accept="image/*,video/*" multiple class="hidden" />
+        </label>
+      </div>
+      
+    </div>
+    
+    <!-- Botones de navegación -->
+    <div class="flex gap-4">
+      <app-button-01 
+        text="Volver"
+        class="flex-1">
+      </app-button-01>
+      
+      <app-button-01 
+        text="Siguiente"
+        class="flex-1">
+      </app-button-01>
+    </div>
+    
+  </div>
+</div>

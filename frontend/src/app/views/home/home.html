@@ -1,121 +1,42 @@
-<div class="w-full max-w-5xl mx-auto p-4 rounded-lg space-y-4 flex flex-col justify-center">
+<div class="w-full px-3 sm:px-4 md:px-6 lg:max-w-[1400px] lg:mx-auto">
 
-  <!-- Ubicación -->
-  <div>
-    <label class="text-sm text-white">Ubicacion</label>
-    <input 
-      type="text" 
-      placeholder="Donde quieres ir?" 
-      class="w-full mt-1 bg-white border border-white text-black-200 placeholder-black-400 px-3 py-2 rounded-lg focus:outline-none focus:border-gray-400"
-    />
-  </div>
+  <!-- Ofertas -->
+  <section class="mb-10" id="offers">
+    <h3 class="mb-6 text-2xl font-bold">Mejores ofertas</h3>
 
-  <!-- Fecha -->
-  <div>
-    <label class="text-sm text-white">Fecha</label>
-    <input 
-      type="text" 
-      placeholder="Fecha / Hora" 
-      class="w-full mt-1 bg-white border border-white text-black-200 placeholder-white-400 px-3 py-2 rounded-lg focus:outline-none focus:border-gray-400"
-    />
-  </div>
-
-  <!-- Filtros rápidos -->
-  <div>
-    <label class="text-sm text-white">Filtros rapidos</label>
-    <input 
-      type="text" 
-      placeholder="Jacuzzi, parqueadero..." 
-      class="w-full mt-1 bg-white border border-white text-black placeholder-black-400 px-3 py-2 rounded-lg focus:outline-none focus:border-gray-400"
-    />
-  </div>
-
-  <!-- Botón -->
-  <app-button-01 [text]="'Buscar'"></app-button-01>
-
-</div>
-
-<!-- CARRUSEL 1: Mejores Ofertas -->
-<div class="mb-12">
-  <div class="flex justify-between items-center px-6 py-4">
-    <p class="text-xl text-white font-bold">Descubre las mejores ofertas</p>
-    <a href="#" class="text-sm text-white hover:underline">Ver todas las ofertas ></a>
-  </div>
-  
-  <!-- Scroll Horizontal -->
-  <div class="overflow-x-auto px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
-    <div class="flex gap-4 pb-4">
-      @for (oferta of mejoresOfertas; track oferta.id) {
-        <div class="flex-shrink-0">
-          <div class="w-72 bg-[#1e2128] rounded-2xl overflow-hidden shadow-lg">
-            <img [src]="oferta.imagen" [alt]="oferta.titulo" class="w-full h-48 object-cover">
-            <div class="p-4">
-              <h2 class="text-white text-lg font-bold italic mb-1">{{ oferta.titulo }}</h2>
-              <p class="text-gray-300 text-xs leading-relaxed mb-3">{{ oferta.descripcion }}</p>
-              <div class="flex gap-3 justify-center">
-                <app-button-01 [text]="'Reservar ahora'" class="flex-1"></app-button-01>
-                <app-button-02 [text]="'Ver Detalles'" class="flex-1"></app-button-02>
-              </div>
-            </div>
-          </div>
-        </div>
-      }
+    <div class="overflow-x-auto scrollbar-hide -mx-3 sm:-mx-4 md:-mx-6 lg:mx-0">
+      <div class="flex gap-4 px-3 sm:px-4 md:px-6 lg:px-0 pb-4">
+        @for (oferta of mejoresOfertas; track oferta.id) {
+          <app-card [card]="oferta" class="shrink-0 w-60 sm:w-64 md:w-72"></app-card>
+        }
+      </div>
     </div>
-  </div>
-</div>
+  </section>
 
-<!-- CARRUSEL 2: Moteles Cercanos -->
-<div class="mb-12">
-  <div class="flex justify-between items-center px-6 py-4">
-    <p class="text-xl text-white font-bold">Moteles más cercanos</p>
-    <a href="#" class="text-sm text-white hover:underline">Ver todos ></a>
-  </div>
-  
-  <div class="overflow-x-auto px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
-    <div class="flex gap-4 pb-4">
-      @for (motel of motelesCercanos; track motel.id) {
-        <div class="flex-shrink-0">
-          <div class="w-72 bg-[#1e2128] rounded-2xl overflow-hidden shadow-lg">
-            <img [src]="motel.imagen" [alt]="motel.titulo" class="w-full h-48 object-cover">
-            <div class="p-4">
-              <h2 class="text-white text-lg font-bold italic mb-1">{{ motel.titulo }}</h2>
-              <p class="text-gray-300 text-xs leading-relaxed mb-3">{{ motel.descripcion }}</p>
-              <div class="flex gap-3 justify-center">
-                <app-button-01 [text]="'Reservar ahora'" class="flex-1"></app-button-01>
-                <app-button-02 [text]="'Ver Detalles'" class="flex-1"></app-button-02>
-              </div>
-            </div>
-          </div>
-        </div>
-      }
-    </div>
-  </div>
-</div>
+  <!-- Moteles Cercanos -->
+  <section class="mb-10" id="motels">
+    <h3 class="mb-6 text-2xl font-bold">Moteles más cercanos</h3>
 
-<!-- CARRUSEL 3: Destinos Populares -->
-<div class="mb-12">
-  <div class="flex justify-between items-center px-6 py-4">
-    <p class="text-xl text-white font-bold">Destinos Populares</p>
-    <a href="#" class="text-sm text-white hover:underline">Ver todos ></a>
-  </div>
-  
-  <div class="overflow-x-auto px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
-    <div class="flex gap-4 pb-4">
-      @for (destino of destinosPopulares; track destino.id) {
-        <div class="flex-shrink-0">
-          <div class="w-72 bg-[#1e2128] rounded-2xl overflow-hidden shadow-lg">
-            <img [src]="destino.imagen" [alt]="destino.titulo" class="w-full h-48 object-cover">
-            <div class="p-4">
-              <h2 class="text-white text-lg font-bold italic mb-1">{{ destino.titulo }}</h2>
-              <p class="text-gray-300 text-xs leading-relaxed mb-3">{{ destino.descripcion }}</p>
-              <div class="flex gap-3 justify-center">
-                <app-button-01 [text]="'Reservar ahora'" class="flex-1"></app-button-01>
-                <app-button-02 [text]="'Ver Detalles'" class="flex-1"></app-button-02>
-              </div>
-            </div>
-          </div>
-        </div>
-      }
+    <div class="overflow-x-auto scrollbar-hide -mx-3 sm:-mx-4 md:-mx-6 lg:mx-0">
+      <div class="flex gap-4 px-3 sm:px-4 md:px-6 lg:px-0 pb-4">
+        @for (motel of motelesCercanos; track motel.id) {
+          <app-card [card]="motel" class="shrink-0 w-60 sm:w-64 md:w-72"></app-card>
+        }
+      </div>
     </div>
-  </div>
+  </section>
+
+  <!-- Destinos Populares -->
+  <section class="mb-10" id="destines">
+    <h3 class="mb-6 text-2xl font-bold">Destinos Populares</h3>
+
+    <div class="overflow-x-auto scrollbar-hide -mx-3 sm:-mx-4 md:-mx-6 lg:mx-0">
+      <div class="flex gap-4 px-3 sm:px-4 md:px-6 lg:px-0 pb-4">
+        @for (destino of destinosPopulares; track destino.id) {
+          <app-card [card]="destino" class="shrink-0 w-60 sm:w-64 md:w-72"></app-card>
+        }
+      </div>
+    </div>
+  </section>
+
 </div>

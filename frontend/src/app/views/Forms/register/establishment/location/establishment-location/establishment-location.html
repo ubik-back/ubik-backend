@@ -1,0 +1,139 @@
+<div class="min-h-screen flex items-center justify-center px-5 text-white">
+  <div class="w-full max-w-2xl">
+    
+    <h1 class="text-4xl font-bold mb-8 tracking-wider text-center">CUENTA ESTABLECIMIENTO</h1>
+    
+    <!-- Barra de progreso -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm">30%</span>
+      </div>
+      <div class="w-full bg-gray-700 rounded-full h-2">
+        <div class="bg-red-600 h-2 rounded-full transition-all" style="width: 30%"></div>
+      </div>
+    </div>
+    
+    <!-- Contenedor principal con 2 columnas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Columna izquierda -->
+      <div class="flex flex-col gap-5">
+        
+        <!-- Nombre del establecimiento -->
+        <app-input 
+          label="Nombre del establecimiento" 
+          placeholder="Ingrese el nombre"
+          type="text">
+        </app-input>
+        
+        <!-- Correo del establecimiento -->
+        <app-input 
+          label="Correo del establecimiento" 
+          placeholder="Ingrese el correo"
+          type="email">
+        </app-input>
+        
+        <!-- RUE$ y RNT en la misma fila -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col">
+            <label class="mb-1 text-white text-sm">RUE$</label>
+            <div class="relative">
+              <input 
+                type="text" 
+                placeholder=""
+                class="rounded-full p-3 pr-10 text-black focus:outline-none focus:ring-2 focus:ring-red-600 w-full bg-white" />
+              <i class="fas fa-calendar absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+          </div>
+          
+          <div class="flex flex-col">
+            <label class="mb-1 text-white text-sm">RNT</label>
+            <div class="relative">
+              <input 
+                type="text" 
+                placeholder=""
+                class="rounded-full p-3 pr-10 text-black focus:outline-none focus:ring-2 focus:ring-red-600 w-full bg-white" />
+              <i class="fas fa-calendar absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Contraseña -->
+        <app-input 
+          label="Contraseña" 
+          placeholder=""
+          type="password">
+        </app-input>
+        
+      </div>
+      
+      <!-- Columna derecha -->
+      <div class="flex flex-col gap-5">
+        
+        <!-- Ubicación - País -->
+        <div class="flex flex-col">
+          <label class="mb-1 text-white text-sm">Ubicación</label>
+          <div class="relative">
+            <select class="rounded-full p-3 text-black focus:outline-none focus:ring-2 focus:ring-red-600 w-full bg-white appearance-none pr-10">
+              <option value="">País</option>
+              <option value="colombia">Colombia</option>
+              <option value="otro">Otro</option>
+            </select>
+            <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+          </div>
+        </div>
+        
+        <!-- Departamento -->
+        <div class="flex flex-col">
+          <label class="mb-1 text-white text-sm">Departamento</label>
+          <div class="relative">
+            <select class="rounded-full p-3 text-black focus:outline-none focus:ring-2 focus:ring-red-600 w-full bg-white appearance-none pr-10">
+              <option value="">Seleccione</option>
+              <option value="antioquia">Antioquia</option>
+              <option value="cundinamarca">Cundinamarca</option>
+              <option value="valle">Valle del Cauca</option>
+            </select>
+            <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+          </div>
+        </div>
+        
+        <!-- Municipio -->
+        <div class="flex flex-col">
+          <label class="mb-1 text-white text-sm">Municipio</label>
+          <div class="relative">
+            <select class="rounded-full p-3 text-black focus:outline-none focus:ring-2 focus:ring-red-600 w-full bg-white appearance-none pr-10">
+              <option value="">Seleccione</option>
+              <option value="medellin">Medellín</option>
+              <option value="bogota">Bogotá</option>
+              <option value="cali">Cali</option>
+            </select>
+            <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+          </div>
+        </div>
+        
+        <!-- Confirmar contraseña -->
+        <app-input 
+          label="Confirma contraseña" 
+          placeholder=""
+          type="password">
+        </app-input>
+        
+      </div>
+      
+    </div>
+    
+    <!-- Botones de navegación -->
+    <div class="flex gap-4 mt-8">
+      <app-button-01 
+        text="Volver"
+        class="flex-1">
+      </app-button-01>
+      
+      <app-button-01 
+        text="Siguiente"
+        class="flex-1">
+      </app-button-01>
+    </div>
+    
+  </div>
+</div>

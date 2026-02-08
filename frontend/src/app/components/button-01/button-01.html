@@ -1,5 +1,37 @@
-<div class="button bg-gradient-to-r from-[#6E2A35] to-[#A72027] text-white font-medium rounded-lg w-full text-center h-8 p-1">
-    <a routerLink="">
-             {{text}}
-    </a>
-</div>
+<button 
+  (click)="navigate()"
+  [disabled]="disabled"
+  class="
+      bg-linear-to-r from-[#6E2A35] to-[#A72027]
+      text-white 
+      font-medium 
+      rounded-lg
+      text-center 
+      hover:from-[#7E3A45]
+      hover:to-[#B73037] 
+      transition-colors 
+      cursor-pointer
+      flex items-center 
+      justify-between 
+      gap-2
+      p-2.5
+      text-overflow: ellipsis;
+      text-clip
+      "
+  [class.w-full]="fullWidth"
+
+>
+
+  @if (iconLeft) {
+  <div class="flex items-center gap-3 flex-1">
+      <i [class]="iconLeft + ' text-lg'"></i>
+    </div>
+  }
+
+  <span class="mx-auto">{{ text }}</span>
+
+  @if (iconRight) {
+    <i [class]="iconRight + ' text-lg opacity-70'"></i>
+  }
+  
+</button>
