@@ -1,68 +1,55 @@
 import { inject } from '@angular/core';
-import { Router, type CanActivateFn } from '@angular/router';
-import { AuthService } from '../auth.service';
+import { Router } from '@angular/router';
+import { CanActivateFn } from '@angular/router';
 
 /**
- * Guard para proteger rutas que requieren autenticación de administrador
- * Solo permite acceso a usuarios con roleId = 1 (Admin)
- */
-export const adminGuard: CanActivateFn = (route, state) => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-
-  // Verificar si el usuario está logueado
-  if (!auth.isLogged()) {
-    console.warn('⛔ Acceso denegado: Usuario no autenticado');
-    router.navigate(['/login']);
-    return false;
-  }
-
-  // Verificar si el usuario es administrador
-  if (!auth.isAdmin()) {
-    console.warn('⛔ Acceso denegado: Usuario no es administrador');
-    router.navigate(['/']);
-    return false;
-  }
-
-  return true;
-};
-
-/**
- * Guard para proteger rutas que requieren autenticación de propietario
- * Solo permite acceso a usuarios con roleId = 2 (Owner)
- */
-export const ownerGuard: CanActivateFn = (route, state) => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-
-  if (!auth.isLogged()) {
-    console.warn('⛔ Acceso denegado: Usuario no autenticado');
-    router.navigate(['/login']);
-    return false;
-  }
-
-  if (!auth.isOwner()) {
-    console.warn('⛔ Acceso denegado: Usuario no es propietario');
-    router.navigate(['/']);
-    return false;
-  }
-
-  return true;
-};
-
-/**
- * Guard para proteger rutas que requieren autenticación básica
- * Permite acceso a cualquier usuario autenticado
+ * Guard funcional para proteger rutas que requieren autenticación
+ * Verifica si existe un token válido en localStorage
+ * Si no existe, redirige al login
  */
 export const authGuard: CanActivateFn = (route, state) => {
-  const auth = inject(AuthService);
   const router = inject(Router);
+  const token = localStorage.getItem('authToken');
 
-  if (!auth.isLogged()) {
-    console.warn('⛔ Acceso denegado: Usuario no autenticado');
+  if (token) {
+    return true;
+  }
+
+  // Redirigir al login guardando la URL de destino
+  router.navigate(['/login'], {
+    queryParams: { returnUrl: state.url }
+  });
+  return false;
+};
+
+/**
+ * Guard funcional para proteger la ruta de admin
+ * Verifica si el usuario tiene rol de administrador
+ */
+export const adminGuard: CanActivateFn = (route, state) => {
+  const router = inject(Router);
+  const userStr = localStorage.getItem('user');
+
+  if (!userStr) {
     router.navigate(['/login']);
     return false;
   }
 
-  return true;
+  try {
+    const user = JSON.parse(userStr);
+    
+    // Verificar si el usuario tiene rol de admin
+    if (user.role === 'ADMIN' || user.isAdmin === true) {
+      return true;
+    }
+
+    // Si no es admin, redirigir a la página principal
+    router.navigate(['/']);
+    alert('No tienes permisos para acceder a esta sección');
+    return false;
+  } catch (error) {
+    console.error('Error parsing user data:', error);
+    router.navigate(['/login']);
+    return false;
+  }
 };

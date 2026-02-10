@@ -1,62 +1,40 @@
 import { Routes } from '@angular/router';
-import { Home } from './views/home/home';
-import { Explore } from './views/explore/explore';
+import { authGuard, adminGuard } from './core/guards/auth.guard';
 
-import { MotelProfile } from './views/motel-profile/motel-profile';
-import { ThreeButtom } from './views/three-buttom/three-buttom';
-import { RoomsMotel } from './views/rooms-motel/rooms-motel';
-import { RoomsOfferts } from './views/rooms-offerts/rooms-offerts';
-import { TodosLosComponentes } from './todos-los-componentes/todos-los-componentes';
-import { UserProfilePage } from './views/user-profile/user-profile';
-
-/* login */
-import { LoginComponent } from './views/Forms/login/login.component';
-
-/* admin */
-// Nota: El componente AdminDashboard debe estar en la misma carpeta que admin.service.ts
-// Ruta: frontend/src/app/core/services/admin/admin-dashboard.component.ts
-import { AdminDashboard } from './views/admin-dashboard/admin-dashboard.component'
-
-/* guards */
-import { adminGuard, ownerGuard, authGuard } from './core/guards/auth.guard';
-
-/** Register  */
-import { RegisterUser } from './views/Forms/register/register-user/components/register-user';
-import { RegisterSelect } from './views/Forms/register/register-select/register-select';
-import { RegisterEstablishmentComponent } from './views/Forms/register/establecimiento/components/register-establishment';
-import { RegisterPropertyEst } from './views/Forms/register/register-propertyEst/components/register-propertyEst';
-
+/**
+ * Configuración de rutas de la aplicación
+ * Incluye protección con guards para rutas que requieren autenticación
+ */
 export const routes: Routes = [
-
-    {path: "", component: Home},
-    {path: "explore", component: Explore},
-    {path: "profile-motel", component: MotelProfile},
-    {path: "three-buttons", component: ThreeButtom},
-    
-    {path: "rooms-motel", component: RoomsMotel},
-    {path: "rooms-offerts", component: RoomsOfferts},
-    
-    /*========== REGISTER / LOGIN ==========*/
-    {path: "select-register", component: RegisterSelect},
-    {path: "register-user", component: RegisterUser},
-    {path: "register-propertyEst", component: RegisterPropertyEst},
-    {path: 'login', component: LoginComponent},
-    {path: "register-establishment", component: RegisterEstablishmentComponent},
-
-    /*========== ADMIN ==========*/
-    {
-      path: "admin/dashboard", 
-      component: AdminDashboard,
-      canActivate: [adminGuard]
-    },
-
-    /**==== PERFILES DE USUARIOS ====== */
-    {
-      path: "userProfile", 
-      component: UserProfilePage,
-      canActivate: [authGuard]
-    },
-
-    /**⚠️ ESTA RUTA ES APARTE SOLO PARA VER TODOS LOS COMPONENTES DE LA PAGINA JUNTOS */
-    {path: "allc", component: TodosLosComponentes},
-]
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'home',
+    loadComponent: () => import('./views/home/home').then(m => m.Home)
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./views/user-profile/services/').then(m => m.Login)
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./pages/register/register').then(m => m.Register)
+  },
+  {
+    path: 'admin',
+    loadComponent: () => import('./pages/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard),
+    canActivate: [authGuard, adminGuard] // Requiere autenticación y rol de admin
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./pages/profile/profile').then(m => m.Profile),
+    canActivate: [authGuard] // Requiere autenticación
+  },
+  {
+    path: '**',
+    redirectTo: 'home'
+  }
+];
