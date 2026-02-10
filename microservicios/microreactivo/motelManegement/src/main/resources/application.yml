@@ -30,16 +30,20 @@ spring:
     init:
       mode: never
 
+# Configuración de logging
 logging:
   level:
-    org.springframework.r2dbc: INFO
-    io.r2dbc.postgresql: INFO
+    root: INFO
+    org.springframework.r2dbc: DEBUG
+    io.r2dbc.postgresql: DEBUG
+    com.ubik.motelmanagement: DEBUG
+    # Logging específico para debugging
+    com.ubik.motelmanagement.infrastructure.adapter.in.web.controller: DEBUG
+    com.ubik.motelmanagement.domain.service: DEBUG
+    com.ubik.motelmanagement.infrastructure.adapter.out.persistence: DEBUG
 
 # Cloudinary Configuration
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
-
-
-
