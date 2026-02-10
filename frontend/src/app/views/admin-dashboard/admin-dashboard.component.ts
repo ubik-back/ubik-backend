@@ -1,8 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AdminService, MotelApproval, ApprovalStatistics } from '../../core/services/admin/admin.service';
-import { Button01 } from '../../components/button-01/button-01';
-import { Button02 } from '../../components/button-02/button-02';
 
 /**
  * Vista del panel de administración
@@ -11,7 +10,7 @@ import { Button02 } from '../../components/button-02/button-02';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, Button01, Button02],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css'
 })
@@ -25,6 +24,9 @@ export class AdminDashboard implements OnInit {
   isLoading = signal(false);
   rejectionReason = signal('');
   showRejectModal = signal(false);
+  showDetailsModal = signal(false);
+  currentImageIndex = signal(0);
+  error = signal<string | null>(null);
 
   constructor(private adminService: AdminService) {}
 
@@ -38,8 +40,14 @@ export class AdminDashboard implements OnInit {
    */
   loadStatistics(): void {
     this.adminService.getApprovalStatistics().subscribe({
-      next: (stats) => this.statistics.set(stats),
-      error: (err) => console.error('Error cargando estadísticas', err)
+      next: (stats) => {
+        this.statistics.set(stats);
+        this.error.set(null);
+      },
+      error: (err) => {
+        console.error('Error cargando estadísticas', err);
+        this.error.set('Error al cargar las estadísticas');
+      }
     });
   }
 
@@ -48,6 +56,8 @@ export class AdminDashboard implements OnInit {
    */
   loadPendingMotels(): void {
     this.isLoading.set(true);
+    this.error.set(null);
+
     this.adminService.getPendingMotels().subscribe({
       next: (motels) => {
         this.pendingMotels.set(motels);
@@ -55,6 +65,7 @@ export class AdminDashboard implements OnInit {
       },
       error: (err) => {
         console.error('Error cargando moteles pendientes', err);
+        this.error.set('Error al cargar los moteles. Por favor, verifica tu sesión.');
         this.isLoading.set(false);
       }
     });
@@ -66,6 +77,7 @@ export class AdminDashboard implements OnInit {
   changeFilter(status: string): void {
     this.currentFilter.set(status);
     this.isLoading.set(true);
+    this.error.set(null);
 
     this.adminService.getMotelsByStatus(status).subscribe({
       next: (motels) => {
@@ -74,6 +86,7 @@ export class AdminDashboard implements OnInit {
       },
       error: (err) => {
         console.error('Error filtrando moteles', err);
+        this.error.set('Error al filtrar los moteles');
         this.isLoading.set(false);
       }
     });
@@ -84,6 +97,8 @@ export class AdminDashboard implements OnInit {
    */
   selectMotel(motel: MotelApproval): void {
     this.selectedMotel.set(motel);
+    this.showDetailsModal.set(true);
+    this.currentImageIndex.set(0);
   }
 
   /**
@@ -91,12 +106,42 @@ export class AdminDashboard implements OnInit {
    */
   closeDetails(): void {
     this.selectedMotel.set(null);
+    this.showDetailsModal.set(false);
+    this.currentImageIndex.set(0);
+  }
+
+  /**
+   * Navega a la siguiente imagen
+   */
+  nextImage(): void {
+    const motel = this.selectedMotel();
+    if (motel && motel.imageUrls && motel.imageUrls.length > 0) {
+      const currentIndex = this.currentImageIndex();
+      const nextIndex = (currentIndex + 1) % motel.imageUrls.length;
+      this.currentImageIndex.set(nextIndex);
+    }
+  }
+
+  /**
+   * Navega a la imagen anterior
+   */
+  previousImage(): void {
+    const motel = this.selectedMotel();
+    if (motel && motel.imageUrls && motel.imageUrls.length > 0) {
+      const currentIndex = this.currentImageIndex();
+      const prevIndex = currentIndex === 0 ? motel.imageUrls.length - 1 : currentIndex - 1;
+      this.currentImageIndex.set(prevIndex);
+    }
   }
 
   /**
    * Aprueba un motel
    */
-  approveMotel(motelId: number): void {
+  approveMotel(motelId: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
     if (!confirm('¿Estás seguro de aprobar este motel?')) {
       return;
     }
@@ -104,22 +149,33 @@ export class AdminDashboard implements OnInit {
     this.adminService.approveMotel(motelId).subscribe({
       next: (response) => {
         console.log('Motel aprobado:', response);
+        alert('Motel aprobado exitosamente');
         this.loadPendingMotels();
         this.loadStatistics();
         this.closeDetails();
+        this.error.set(null);
       },
-      error: (err) => console.error('Error aprobando motel', err)
+      error: (err) => {
+        console.error('Error aprobando motel', err);
+        alert('Error al aprobar el motel. Por favor, intenta de nuevo.');
+        this.error.set('Error al aprobar el motel');
+      }
     });
   }
 
   /**
    * Abre el modal para rechazar un motel
    */
-  openRejectModal(motelId: number): void {
+  openRejectModal(motelId: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
     const motel = this.pendingMotels().find(m => m.id === motelId);
     if (motel) {
       this.selectedMotel.set(motel);
       this.showRejectModal.set(true);
+      this.showDetailsModal.set(false);
     }
   }
 
@@ -138,11 +194,17 @@ export class AdminDashboard implements OnInit {
     this.adminService.rejectMotel(motel.id, reason).subscribe({
       next: (response) => {
         console.log('Motel rechazado:', response);
+        alert('Motel rechazado exitosamente');
         this.loadPendingMotels();
         this.loadStatistics();
         this.closeRejectModal();
+        this.error.set(null);
       },
-      error: (err) => console.error('Error rechazando motel', err)
+      error: (err) => {
+        console.error('Error rechazando motel', err);
+        alert('Error al rechazar el motel. Por favor, intenta de nuevo.');
+        this.error.set('Error al rechazar el motel');
+      }
     });
   }
 
@@ -158,14 +220,24 @@ export class AdminDashboard implements OnInit {
   /**
    * Pone un motel en revisión
    */
-  putUnderReview(motelId: number): void {
+  putUnderReview(motelId: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
     this.adminService.putMotelUnderReview(motelId).subscribe({
       next: (response) => {
         console.log('Motel puesto en revisión:', response);
+        alert('Motel puesto en revisión exitosamente');
         this.loadPendingMotels();
         this.loadStatistics();
+        this.error.set(null);
       },
-      error: (err) => console.error('Error poniendo motel en revisión', err)
+      error: (err) => {
+        console.error('Error poniendo motel en revisión', err);
+        alert('Error al poner el motel en revisión. Por favor, intenta de nuevo.');
+        this.error.set('Error al poner el motel en revisión');
+      }
     });
   }
 

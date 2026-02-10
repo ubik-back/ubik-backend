@@ -1,38 +1,41 @@
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { HttpInterceptorFn } from '@angular/core';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
 
-const PUBLIC_ENDPOINTS = [
-  '/auth/login',
-  '/auth/register',
-];
-
+/**
+ * Interceptor HTTP funcional para manejar autenticación
+ * Agrega automáticamente el token de autorización a todas las peticiones HTTP
+ * y maneja errores de autenticación
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const platformId = inject(PLATFORM_ID);
+  const router = inject(Router);
 
-  // SSR: no tocar storage
-  if (!isPlatformBrowser(platformId)) {
-    return next(req);
+  // Obtener el token del localStorage
+  const token = localStorage.getItem('authToken');
+
+  // Si existe el token, clonamos la petición y agregamos el header de autorización
+  let authReq = req;
+  if (token) {
+    authReq = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
   }
 
-  // Endpoints públicos
-  if (PUBLIC_ENDPOINTS.some(url => req.url.includes(url))) {
-    return next(req);
-  }
+  // Continuar con la petición y manejar errores
+  return next(authReq).pipe(
+    catchError((error) => {
+      // Si el error es 401 (No Autorizado), redirigir al login
+      if (error.status === 401) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        router.navigate(['/login']);
+      }
 
-  const token =
-    localStorage.getItem('auth_token') ??
-    sessionStorage.getItem('auth_token');
-
-  if (!token) {
-    return next(req);
-  }
-
-  const authReq = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return next(authReq);
+      // Re-lanzar el error para que los componentes lo puedan manejar
+      return throwError(() => error);
+    })
+  );
 };

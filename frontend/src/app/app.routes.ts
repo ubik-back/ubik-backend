@@ -12,6 +12,13 @@ import { UserProfilePage } from './views/user-profile/user-profile';
 /* login */
 import { LoginComponent } from './views/Forms/login/login.component';
 
+/* admin */
+// Nota: El componente AdminDashboard debe estar en la misma carpeta que admin.service.ts
+// Ruta: frontend/src/app/core/services/admin/admin-dashboard.component.ts
+import { AdminDashboard } from './views/admin-dashboard/admin-dashboard.component'
+
+/* guards */
+import { adminGuard, ownerGuard, authGuard } from './core/guards/auth.guard';
 
 /** Register  */
 import { RegisterUser } from './views/Forms/register/register-user/components/register-user';
@@ -19,38 +26,37 @@ import { RegisterSelect } from './views/Forms/register/register-select/register-
 import { RegisterEstablishmentComponent } from './views/Forms/register/establecimiento/components/register-establishment';
 import { RegisterPropertyEst } from './views/Forms/register/register-propertyEst/components/register-propertyEst';
 
-
-
-
-
 export const routes: Routes = [
 
     {path: "", component: Home},
     {path: "explore", component: Explore},
     {path: "profile-motel", component: MotelProfile},
-    {path: "three-buttons", component: ThreeButtom},// 🔴 ESTO DEBERIA DE LLAMARSE DASHBORAD-MOTEL - Y DEBERIA DE FUNCIONAR COMO UN FILTRP AL DARLE EN UN BOTON DEBERIA DE APARECER ABAJO LO QUE SE SELECCIONONO - POR EJEMPLO LA LISTA DE LOS MOTELES.
+    {path: "three-buttons", component: ThreeButtom},
     
     {path: "rooms-motel", component: RoomsMotel},
     {path: "rooms-offerts", component: RoomsOfferts},
     
-    /*========== REGISTER / LOGUIN ==========*/
-
+    /*========== REGISTER / LOGIN ==========*/
     {path: "select-register", component: RegisterSelect},
-    
     {path: "register-user", component: RegisterUser},
     {path: "register-propertyEst", component: RegisterPropertyEst},
-
-
     {path: 'login', component: LoginComponent},
     {path: "register-establishment", component: RegisterEstablishmentComponent},
 
+    /*========== ADMIN ==========*/
+    {
+      path: "admin/dashboard", 
+      component: AdminDashboard,
+      canActivate: [adminGuard]
+    },
 
-    /**==== PERFILES DE USURIOS ====== */
+    /**==== PERFILES DE USUARIOS ====== */
+    {
+      path: "userProfile", 
+      component: UserProfilePage,
+      canActivate: [authGuard]
+    },
 
-    {path: "userProfile", component: UserProfilePage},
-
-
-    /**⚠️ ESTA RUTA ES APARTE SOLO PARA VER TODOS LOS COMPONENTES DE LA PAGINA JUNTOS SOLO TENDREMOS CONOCIMIENTO DE ELLA NOSOTROS :v */
+    /**⚠️ ESTA RUTA ES APARTE SOLO PARA VER TODOS LOS COMPONENTES DE LA PAGINA JUNTOS */
     {path: "allc", component: TodosLosComponentes},
-
 ]

@@ -11,7 +11,6 @@ import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-// 1. IMPORTAR NUEVOS ÍCONOS
 import {
   faHouse,
   faCompass,
@@ -31,8 +30,8 @@ const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/select-register',
   PROFILE: '/userProfile', 
-  OWNER: '/', 
-  ADMIN: '/'  
+  OWNER: '/three-buttons',
+  ADMIN: '/admin/dashboard'
 };
 
 @Component({
