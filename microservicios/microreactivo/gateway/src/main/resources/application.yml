@@ -21,6 +21,14 @@ spring:
           filters:
             - StripPrefix=0
 
+        # ✅ notificationService
+        - id: notificationService
+          uri: http://notificationService:8084
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=0
+
         # ✅ Motel Management - Motels (CORREGIDO: motel-management-service)
         - id: motel-management-motels
           uri: http://motel-management-service:8083
