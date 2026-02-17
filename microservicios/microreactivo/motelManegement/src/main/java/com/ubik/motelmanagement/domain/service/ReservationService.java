@@ -219,6 +219,7 @@ public class ReservationService implements ReservationUseCasePort {
                                             existingReservation.status(),
                                             reservation.totalPrice(),
                                             reservation.specialRequests(),
+                                            existingReservation.confirmationCode(),
                                             existingReservation.createdAt(),
                                             LocalDateTime.now()
                                     );
@@ -235,6 +236,7 @@ public class ReservationService implements ReservationUseCasePort {
                                 existingReservation.status(),
                                 reservation.totalPrice(),
                                 reservation.specialRequests(),
+                                existingReservation.confirmationCode(),
                                 existingReservation.createdAt(),
                                 LocalDateTime.now()
                         );
