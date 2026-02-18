@@ -1,7 +1,7 @@
 package com.example.paymentservice.adapters.in.web;
 
-import com.acme.payments.application.command.HandleWebhookCommand;
-import com.acme.payments.application.port.in.HandleMercadoPagoWebhookUseCase;
+import com.example.paymentservice.application.command.HandleWebhookCommand;
+import com.example.paymentservice.application.port.in.HandleMercadoPagoWebhookUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;

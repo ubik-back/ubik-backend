@@ -1,7 +1,7 @@
 package com.example.paymentservice.domain.exception;
 
-import com.acme.payments.adapters.in.web.dto.ApiErrorResponse;
-import com.acme.payments.domain.exception.*;
+import com.example.paymentservice.adapters.in.web.dto.ApiErrorResponse;
+import com.example.paymentservice.domain.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

@@ -1,14 +1,14 @@
 package com.example.paymentservice.adapters.in.web;
 
 
-import com.acme.payments.adapters.in.web.dto.PaymentDtos;
-import com.acme.payments.adapters.in.web.dto.PaymentDtos.*;
-import com.acme.payments.application.command.CreateCheckoutProCommand;
-import com.acme.payments.application.command.RefundPaymentCommand;
-import com.acme.payments.application.port.in.CreateCheckoutProPreferenceUseCase;
-import com.acme.payments.application.port.in.GetPaymentIntentUseCase;
-import com.acme.payments.application.port.in.RefundPaymentUseCase;
-import com.acme.payments.application.result.PaymentIntentView;
+import com.example.paymentservice.adapters.in.web.dto.PaymentDtos;
+import com.example.paymentservice.adapters.in.web.dto.PaymentDtos.*;
+import com.example.paymentservice.application.command.CreateCheckoutProCommand;
+import com.example.paymentservice.application.command.RefundPaymentCommand;
+import com.example.paymentservice.application.port.in.CreateCheckoutProPreferenceUseCase;
+import com.example.paymentservice.application.port.in.GetPaymentIntentUseCase;
+import com.example.paymentservice.application.port.in.RefundPaymentUseCase;
+import com.example.paymentservice.application.result.PaymentIntentView;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

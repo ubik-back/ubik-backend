@@ -1,6 +1,6 @@
 package com.example.paymentservice.domain.service;
 
-import com.acme.payments.domain.model.PaymentStatus;
+import com.example.paymentservice.domain.model.PaymentStatus;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -1,7 +1,7 @@
 package com.example.paymentservice.application.port.out;
 
 
-import com.acme.payments.domain.model.PaymentIntent;
+import com.example.paymentservice.domain.model.PaymentIntent;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;

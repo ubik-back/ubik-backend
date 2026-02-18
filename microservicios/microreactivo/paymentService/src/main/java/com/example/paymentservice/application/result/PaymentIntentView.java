@@ -1,6 +1,6 @@
 package com.example.paymentservice.application.result;
 
-import com.acme.payments.domain.model.PaymentStatus;
+import com.example.paymentservice.domain.model.PaymentStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;

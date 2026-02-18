@@ -1,7 +1,7 @@
 package com.example.paymentservice.adapters.out.persistence.mapper;
 
-import com.acme.payments.adapters.out.persistence.entity.PaymentIntentEntity;
-import com.acme.payments.domain.model.*;
+import com.example.paymentservice.adapters.out.persistence.entity.PaymentIntentEntity;
+import com.example.paymentservice.domain.model.*;
 import org.springframework.stereotype.Component;
 
 @Component

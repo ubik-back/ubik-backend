@@ -1,8 +1,8 @@
 package com.example.paymentservice.adapters.out.mercadopago;
 
-import com.acme.payments.application.port.out.MercadoPagoPort;
-import com.acme.payments.config.MercadoPagoProperties;
-import com.acme.payments.domain.exception.ProviderException;
+import com.example.paymentservice.application.port.out.MercadoPagoPort;
+import com.example.paymentservice.config.MercadoPagoProperties;
+import com.example.paymentservice.domain.exception.ProviderException;
 import com.mercadopago.client.common.RequestOptions;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentRefundClient;

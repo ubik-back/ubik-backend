@@ -1,9 +1,9 @@
 package com.example.paymentservice.adapters.out.persistence;
 
 
-import com.acme.payments.adapters.out.persistence.entity.IdempotencyKeyEntity;
-import com.acme.payments.adapters.out.persistence.r2dbc.IdempotencyKeyR2dbcRepository;
-import com.acme.payments.application.port.out.IdempotencyStorePort;
+import com.example.paymentservice.adapters.out.persistence.entity.IdempotencyKeyEntity;
+import com.example.paymentservice.adapters.out.persistence.r2dbc.IdempotencyKeyR2dbcRepository;
+import com.example.paymentservice.application.port.out.IdempotencyStorePort;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 

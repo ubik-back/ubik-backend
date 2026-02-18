@@ -1,15 +1,15 @@
 package com.example.paymentservice.application.service;
 
-import com.acme.payments.application.command.RefundPaymentCommand;
-import com.acme.payments.application.port.in.RefundPaymentUseCase;
-import com.acme.payments.application.port.out.IdempotencyStorePort;
-import com.acme.payments.application.port.out.IdempotencyStorePort.IdemRecord;
-import com.acme.payments.application.port.out.MercadoPagoPort;
-import com.acme.payments.application.port.out.PaymentIntentRepositoryPort;
-import com.acme.payments.application.result.RefundResult;
-import com.acme.payments.domain.exception.NotFoundException;
-import com.acme.payments.domain.model.PaymentIntent;
-import com.acme.payments.domain.model.PaymentStatus;
+import com.example.paymentservice.application.command.RefundPaymentCommand;
+import com.example.paymentservice.application.port.in.RefundPaymentUseCase;
+import com.example.paymentservice.application.port.out.IdempotencyStorePort;
+import com.example.paymentservice.application.port.out.IdempotencyStorePort.IdemRecord;
+import com.example.paymentservice.application.port.out.MercadoPagoPort;
+import com.example.paymentservice.application.port.out.PaymentIntentRepositoryPort;
+import com.example.paymentservice.application.result.RefundResult;
+import com.example.paymentservice.domain.exception.NotFoundException;
+import com.example.paymentservice.domain.model.PaymentIntent;
+import com.example.paymentservice.domain.model.PaymentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

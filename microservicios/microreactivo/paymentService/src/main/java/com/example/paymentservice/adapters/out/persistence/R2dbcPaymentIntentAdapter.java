@@ -1,10 +1,10 @@
 package com.example.paymentservice.adapters.out.persistence;
 
 
-import com.acme.payments.adapters.out.persistence.mapper.PaymentIntentPersistenceMapper;
-import com.acme.payments.adapters.out.persistence.r2dbc.PaymentIntentR2dbcRepository;
-import com.acme.payments.application.port.out.PaymentIntentRepositoryPort;
-import com.acme.payments.domain.model.PaymentIntent;
+import com.example.paymentservice.adapters.out.persistence.mapper.PaymentIntentPersistenceMapper;
+import com.example.paymentservice.adapters.out.persistence.r2dbc.PaymentIntentR2dbcRepository;
+import com.example.paymentservice.application.port.out.PaymentIntentRepositoryPort;
+import com.example.paymentservice.domain.model.PaymentIntent;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 

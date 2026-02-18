@@ -1,9 +1,9 @@
 package com.example.paymentservice.adapters.out.persistence;
 
 
-import com.acme.payments.adapters.out.persistence.entity.WebhookEventEntity;
-import com.acme.payments.adapters.out.persistence.r2dbc.WebhookEventR2dbcRepository;
-import com.acme.payments.application.port.out.WebhookEventStorePort;
+import com.example.paymentservice.adapters.out.persistence.entity.WebhookEventEntity;
+import com.example.paymentservice.adapters.out.persistence.r2dbc.WebhookEventR2dbcRepository;
+import com.example.paymentservice.application.port.out.WebhookEventStorePort;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 

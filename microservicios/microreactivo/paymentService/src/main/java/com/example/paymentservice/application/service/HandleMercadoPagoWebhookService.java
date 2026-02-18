@@ -1,14 +1,14 @@
 package com.example.paymentservice.application.service;
 
-import com.acme.payments.adapters.in.web.security.MercadoPagoWebhookSignatureVerifier;
-import com.acme.payments.application.command.HandleWebhookCommand;
-import com.acme.payments.application.port.in.HandleMercadoPagoWebhookUseCase;
-import com.acme.payments.application.port.out.MercadoPagoPort;
-import com.acme.payments.application.port.out.PaymentIntentRepositoryPort;
-import com.acme.payments.application.port.out.WebhookEventStorePort;
-import com.acme.payments.application.port.out.WebhookEventStorePort.WebhookEventRecord;
-import com.acme.payments.domain.model.PaymentIntent;
-import com.acme.payments.domain.service.MercadoPagoStatusTranslator;
+import com.example.paymentservice.adapters.in.web.security.MercadoPagoWebhookSignatureVerifier;
+import com.example.paymentservice.application.command.HandleWebhookCommand;
+import com.example.paymentservice.application.port.in.HandleMercadoPagoWebhookUseCase;
+import com.example.paymentservice.application.port.out.MercadoPagoPort;
+import com.example.paymentservice.application.port.out.PaymentIntentRepositoryPort;
+import com.example.paymentservice.application.port.out.WebhookEventStorePort;
+import com.example.paymentservice.application.port.out.WebhookEventStorePort.WebhookEventRecord;
+import com.example.paymentservice.domain.model.PaymentIntent;
+import com.example.paymentservice.domain.service.MercadoPagoStatusTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

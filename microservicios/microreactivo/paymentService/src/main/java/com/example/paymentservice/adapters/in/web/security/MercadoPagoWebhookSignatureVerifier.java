@@ -1,6 +1,6 @@
 package com.example.paymentservice.adapters.in.web.security;
 
-import com.acme.payments.config.MercadoPagoProperties;
+import com.example.paymentservice.config.MercadoPagoProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

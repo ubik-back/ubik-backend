@@ -1,10 +1,10 @@
 package com.example.paymentservice.application.service;
 
-import com.acme.payments.application.port.in.GetPaymentIntentUseCase;
-import com.acme.payments.application.port.out.PaymentIntentRepositoryPort;
-import com.acme.payments.application.result.PaymentIntentView;
-import com.acme.payments.domain.exception.NotFoundException;
-import com.acme.payments.domain.model.PaymentIntent;
+import com.example.paymentservice.application.port.in.GetPaymentIntentUseCase;
+import com.example.paymentservice.application.port.out.PaymentIntentRepositoryPort;
+import com.example.paymentservice.application.result.PaymentIntentView;
+import com.example.paymentservice.domain.exception.NotFoundException;
+import com.example.paymentservice.domain.model.PaymentIntent;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 

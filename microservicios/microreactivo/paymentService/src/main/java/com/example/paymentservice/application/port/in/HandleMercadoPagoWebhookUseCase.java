@@ -1,7 +1,7 @@
 package com.example.paymentservice.application.port.in;
 
 
-import com.acme.payments.application.command.HandleWebhookCommand;
+import com.example.paymentservice.application.command.HandleWebhookCommand;
 import reactor.core.publisher.Mono;
 
 public interface HandleMercadoPagoWebhookUseCase {

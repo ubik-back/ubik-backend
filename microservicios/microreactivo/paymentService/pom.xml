@@ -75,7 +75,7 @@
         <dependency>
             <groupId>com.mercadopago</groupId>
             <artifactId>sdk-java</artifactId>
-            <version>${mp.sdk.version}</version>
+            <version>2.1.7</version>
         </dependency>
 
         <!-- Actuator + Prometheus -->
