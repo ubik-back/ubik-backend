@@ -1,7 +1,7 @@
 package com.example.gateway.application.config;
 
 import com.example.gateway.application.filter.JwtAuthenticationFilter;
-import com.ubik.motelmanagement.domain.model.RoleConstants;
+import com.ubik.usermanagement.domain.model.RoleConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
