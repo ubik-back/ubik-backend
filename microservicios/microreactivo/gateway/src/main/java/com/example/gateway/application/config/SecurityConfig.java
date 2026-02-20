@@ -70,7 +70,7 @@ public class SecurityConfig {
                         // ========================================
                         
                         // Gestión de aprobación de moteles - SOLO ADMIN
-                        .pathMatchers("/api/admin/motels/**").hasAuthority("ROLE_" + RoleConstants.ADMIN)
+                        .pathMatchers("/api/admin/motels/**").hasAuthority("ROLE_" + System.getenv().getOrDefault("ROLE_ID_ADMIN", "7392841056473829"))
 
 
                         // ========================================
