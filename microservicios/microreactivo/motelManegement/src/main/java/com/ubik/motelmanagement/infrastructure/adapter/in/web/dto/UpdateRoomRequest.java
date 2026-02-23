@@ -26,6 +26,16 @@ public record UpdateRoomRequest(
         Boolean isAvailable,
 
         @Size(max = 15, message = "No se pueden agregar más de 15 imágenes")
-        List<@Size(max = 500, message = "La URL de la imagen no puede exceder 500 caracteres") String> imageUrls
+        List<@Size(max = 500, message = "La URL de la imagen no puede exceder 500 caracteres") String> imageUrls,
+
+        @DecimalMin(value = "-90.0", message = "La latitud debe estar entre -90 y 90")
+        @DecimalMax(value = "90.0", message = "La latitud debe estar entre -90 y 90")
+        Double latitude,
+
+        @DecimalMin(value = "-180.0", message = "La longitud debe estar entre -180 y 180")
+        @DecimalMax(value = "180.0", message = "La longitud debe estar entre -180 y 180")
+        Double longitude,
+
+        List<Long> serviceIds
 ) {
 }

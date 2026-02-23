@@ -12,59 +12,39 @@ import java.util.List;
 @Component
 public class RoomMapper {
 
-    /**
-     * Convierte de entidad de persistencia a modelo de dominio (sin imágenes)
-     */
+    /** Entidad → Dominio sin imágenes ni serviceIds */
     public Room toDomain(RoomEntity entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
         return new Room(
-                entity.id(),
-                entity.motelId(),
-                entity.number(),
-                entity.roomType(),
-                entity.price(),
-                entity.description(),
-                entity.isAvailable(),
-                List.of() // Lista vacía por defecto
+                entity.id(), entity.motelId(), entity.number(), entity.roomType(),
+                entity.price(), entity.description(), entity.isAvailable(),
+                List.of(),
+                entity.latitude(), entity.longitude(),
+                null, null, null, null,
+                null
         );
     }
 
-    /**
-     * Convierte de entidad de persistencia a modelo de dominio (con imágenes)
-     */
-    public Room toDomain(RoomEntity entity, List<String> imageUrls) {
-        if (entity == null) {
-            return null;
-        }
+    /** Entidad → Dominio con imágenes y serviceIds */
+    public Room toDomain(RoomEntity entity, List<String> imageUrls, List<Long> serviceIds) {
+        if (entity == null) return null;
         return new Room(
-                entity.id(),
-                entity.motelId(),
-                entity.number(),
-                entity.roomType(),
-                entity.price(),
-                entity.description(),
-                entity.isAvailable(),
-                imageUrls != null ? imageUrls : List.of()
+                entity.id(), entity.motelId(), entity.number(), entity.roomType(),
+                entity.price(), entity.description(), entity.isAvailable(),
+                imageUrls != null ? imageUrls : List.of(),
+                entity.latitude(), entity.longitude(),
+                null, null, null, null,
+                serviceIds != null ? serviceIds : List.of()
         );
     }
 
-    /**
-     * Convierte de modelo de dominio a entidad de persistencia
-     */
+    /** Dominio → Entidad (solo campos de la tabla room) */
     public RoomEntity toEntity(Room room) {
-        if (room == null) {
-            return null;
-        }
+        if (room == null) return null;
         return new RoomEntity(
-                room.id(),
-                room.motelId(),
-                room.number(),
-                room.roomType(),
-                room.price(),
-                room.description(),
-                room.isAvailable()
+                room.id(), room.motelId(), room.number(), room.roomType(),
+                room.price(), room.description(), room.isAvailable(),
+                room.latitude(), room.longitude()
         );
     }
 }

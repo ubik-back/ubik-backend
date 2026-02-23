@@ -6,7 +6,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * Entidad de persistencia para Room
- * Representa la tabla en la base de datos
+ * Representa la tabla 'room' en la base de datos
  */
 @Table("room")
 public record RoomEntity(
@@ -16,6 +16,8 @@ public record RoomEntity(
         @Column("room_type") String roomType,
         Double price,
         String description,
-        @Column("is_available") Boolean isAvailable
+        @Column("is_available") Boolean isAvailable,
+        Double latitude,
+        Double longitude
 ) {
 }
