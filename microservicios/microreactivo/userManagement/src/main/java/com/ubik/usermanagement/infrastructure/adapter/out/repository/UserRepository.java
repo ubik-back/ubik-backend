@@ -12,5 +12,4 @@ public interface UserRepository extends R2dbcRepository<UserEntity, Long> {
 
     Mono<UserEntity> findByResetToken(String resetToken);
 
-    Mono<UserEntity> findById(String id);
 }
