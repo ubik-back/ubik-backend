@@ -116,6 +116,7 @@ frontend/dist/
 frontend/.angular/
 backend/**/target/
 backend/**/build/
+backend/**/out/
 
 ############################
 # 🔹 Otros
