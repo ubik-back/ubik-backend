@@ -51,7 +51,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.PUT, "/api/services/**").authenticated()
                         .pathMatchers(HttpMethod.DELETE, "/api/services/**").authenticated()
                         .pathMatchers("/api/reservations/**").authenticated()
-                        .pathMatchers("/api/user/**").authenticated()
+                        .pathMatchers("/api/user", "/api/user/**").authenticated()
                         .anyExchange().authenticated()
                 )
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
