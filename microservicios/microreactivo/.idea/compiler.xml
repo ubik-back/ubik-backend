@@ -12,6 +12,7 @@
         <module name="customers" />
         <module name="motel-management" />
         <module name="gateway" />
+        <module name="payments-checkout-pro" />
         <module name="products" />
       </profile>
       <profile name="Annotation profile for microreactivo-2025" enabled="true">
@@ -19,6 +20,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
         </processorPath>
         <module name="user-management" />
@@ -33,6 +35,7 @@
       <module name="notificationService" options="-parameters" />
       <module name="orders" options="-parameters" />
       <module name="paymentService" options="-parameters" />
+      <module name="payments-checkout-pro" options="-parameters" />
       <module name="products" options="-parameters" />
       <module name="user-management" options="-parameters" />
     </option>
