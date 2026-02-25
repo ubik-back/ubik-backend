@@ -51,19 +51,15 @@ public class UserProfileController {
 
     @DeleteMapping
     public Mono<ResponseEntity<Void>> deleteProfile(ServerWebExchange exchange) {
+
         String username = exchange.getRequest()
                 .getHeaders()
                 .getFirst("X-User-Username");
 
-        // Guard: si el header no llegó, retornar 401
-        if (username == null || username.isBlank()) {
-            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
-        }
-
         return userProfileUseCase.deleteUserProfile(username)
                 .map(deleted -> deleted
-                        ? ResponseEntity.<Void>noContent().build()
-                        : ResponseEntity.<Void>notFound().build()
+                        ? ResponseEntity.noContent().build()
+                        : ResponseEntity.notFound().build()
                 );
     }
 }

@@ -35,7 +35,7 @@ spring:
         - id: userManagement-auth
           uri: http://usermanagement-service:8081
           predicates:
-            - Path=/api/auth/
+            - Path=/api/auth/**
           filters:
             - StripPrefix=0
 
@@ -43,7 +43,7 @@ spring:
         - id: userManagement-profile
           uri: http://usermanagement-service:8081
           predicates:
-            - Path=/api/user,/api/user**
+            - Path=/api/user/**
           filters:
             - StripPrefix=0
 
