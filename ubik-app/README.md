@@ -1,70 +1,125 @@
-# Getting Started with Create React App
+# ![Logo Ubik](./public/assets/logo/favicon.png) UBIK
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Frontend web de Ubik – aplicación orientada a dispositivos móviles, construida con Angular, diseñada como plataforma formativa para el SENA.
 
-## Available Scripts
+Ubik es una plataforma web progresiva (PWA) que apoya la gestión hotelera y mejora la experiencia de los usuarios finales, permitiendo la 
+administración de establecimientos tipo motel y ofreciendo a los clientes una forma simple de encontrar habitaciones disponibles a buenos precios.
 
-In the project directory, you can run:
+--- 
 
-### `npm start`
+## 🧠 ¿Qué es Ubik?
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Ubik es una solución orientada a la gestión de moteles y a la interacción entre:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+  **✔ Dueños de establecimientos — pueden gestionar sus habitaciones y clientes**<br>
+  **✔ Clientes — pueden encontrar moteles y reservar habitaciones**
 
-### `npm test`
+Se trata de un proyecto formativo desarrollado como parte de la capacitación del Servicio Nacional de Aprendizaje (SENA) en Colombia.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+🔎 Enfoque principal del repositorio es el frontend web adaptado a mobile, con futuro soporte para mapas y búsqueda de lugares cercanos mediante geolocalización del usuario.
+  
+### 🚀 Características principales
+  
+- ✨ Autenticación y roles de usuario
 
-### `npm run build`
+- Registro e inicio de sesión.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Selección de tipo de rol:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+  🧑‍💼 Dueño de establecimiento
+  
+  👤 Cliente (anónimo)
+  
+### 📍 Geolocalización
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  Muestra ubicación del usuario en tiempo real en un mapa.
+  
+  Próximamente: listado y visualización de establecimientos cercanos.
 
-### `npm run eject`
+## 📍 Diseño Mobile-First
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+  UI pensada para dispositivos pequeños.
+  
+  Arquitectura modular con Angular.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## ⚠ Para versiones iniciales:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+  Funcionalidades de búsqueda aún no están disponibles.
+  
+  Vista principal (Home) con elementos básicos para prototipado.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 📦 Tecnologías utilizadas
 
-## Learn More
+  La aplicación fue desarrollada principalmente con:
+  
+  Angular	Framework frontend principal
+  TypeScript	Lógica de aplicación
+  HTML / Tailwind	Estructura y estilos
+  Mapa y Geolocalización	Integración con APIs de mapa para mostrar ubicación
+  
+  (Esta información está deducida del contenido del repositorio, que contiene archivos de Angular como angular.json, TypeScript y configuraciones típicas de este framework).
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🗂 Estructura del proyecto
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+  La estructura principal del repositorio es la siguiente:
+    ``` code
+      /
+      ├── public/               # Archivos estáticos
+      ├── src/                  # Código fuente Angular
+      ├── angular.json          # Configuración Angular
+      ├── package.json          # Dependencias y scripts
+      ├── tsconfig.json         # Configuración TypeScript
+      └── ...otros archivos de configuración
+    ``` 
 
-### Code Splitting
+  Puedes abrir el proyecto con tu editor preferido y ejecutar el frontend localmente con los scripts típicos de Angular.
+  
+## 🛠️ Cómo ejecutar el proyecto
+  
+  1. Clonar el repositorio
+  
+    ``` bash
+    
+      git clone https://github.com/Juankos0714/Ubik-App.git
+    ```
+  
+  2. Instalar dependencias
+     
+    ``` bash
+    
+      npm install
+    ```
+  
+  3. Ejecutar la app en modo desarrollo
+     
+    ``` bash
+    
+      ng serve
+    ```
+  
+  4. Abrir en el navegador
+  
+    ``` code
+    
+      http://localhost:4200
+    ```
+### 📌 Estado actual y roadmap
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+  **❗ Funcionalidades actuales**
+  
+  Registro e inicio de sesión
+  
+  Selección de tipo de usuario
+  
+  Vista básica de mapa con ubicación del usuario
 
-### Analyzing the Bundle Size
+### 🚧 Funcionalidades en desarrollo
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+  Búsquedas en Explore y Home
+  
+  Mostrar moteles cercanos con mapa
+  
+  Integración con backend (si aplica)
+  
+  Reservas desde la UI
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
