@@ -1,28 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="aba1757a-4faa-4717-9366-e778d7beeae9" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/microservicios/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/microservicios/.idea/003_MICROSERVICIOS.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/microservicios/.idea/compiler.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/microservicios/.idea/dataSources.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/microservicios/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/microservicios/.idea/jarRepositories.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/microservicios/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/microservicios/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/microservicios/.idea/vcs.xml" beforeDir="false" />
-    </list>
+    <list default="true" id="aba1757a-4faa-4717-9366-e778d7beeae9" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="feature-motelManagement" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Juankos0714&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/ubikapp3-cyber/ubik-front",
+    "accountId": "c96732fd-f258-4e56-a9aa-46f4bb2ef1ef"
+  }
 }]]></component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
   <component name="ProjectId" id="34W32K3Q7dqiHBsiOLbGGs0VoI8" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -30,23 +44,41 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Maven. [-q,-pl,MotelManagemement,-am...].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "SHELLCHECK.PATH": "C:\\Users\\jucar\\AppData\\Roaming\\JetBrains\\IntelliJIdea2025.2\\plugins\\Shell Script\\shellcheck.exe",
+    "git-widget-placeholder": "feature-backDeploy",
+    "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/00-Disco-D/022-ADSO/0000-PROYECTO_FORMATIVO/Ubik-App",
+    "last_opened_file_path": "C:/Users/jucar/Documentos/Software_Development/Deploy_VM_Ubik/ubik-front",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Global Libraries",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "swagger",
     "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
   }
 }]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.25557.131" />
-        <option value="bundled-js-predefined-d6986cc7102b-b598e85cdad2-JavaScript-IU-252.25557.131" />
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.28539.13" />
+        <option value="bundled-js-predefined-d6986cc7102b-a71380e98a7c-JavaScript-IU-252.28539.13" />
       </set>
     </attachedChunks>
   </component>
@@ -58,10 +90,29 @@
       <option name="presentableId" value="Default" />
       <updated>1761315291774</updated>
       <workItem from="1761315292968" duration="37000" />
+      <workItem from="1761880993432" duration="1221000" />
+      <workItem from="1761882960796" duration="2028000" />
+      <workItem from="1761968101602" duration="1078000" />
+      <workItem from="1762202914392" duration="7212000" />
+      <workItem from="1762258788634" duration="417000" />
+      <workItem from="1765464784527" duration="621000" />
+      <workItem from="1770377687516" duration="70000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>
