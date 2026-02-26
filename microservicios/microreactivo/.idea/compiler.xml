@@ -10,7 +10,6 @@
         <module name="customers" />
         <module name="motel-management" />
         <module name="gateway" />
-        <module name="products" />
         <module name="notificationService" />
       </profile>
       <profile name="Annotation profile for microreactivo-2025" enabled="true">
@@ -24,6 +23,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="payments-checkout-pro" target="17" />
       <module name="paymentService" target="17" />
     </bytecodeTargetLevel>
   </component>
