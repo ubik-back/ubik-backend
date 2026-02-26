@@ -1,13 +1,11 @@
-package com.acme.payments;
+package com.example.paymentservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
-@ConfigurationPropertiesScan
-public class PaymentsApplication {
+public class PaymentServiceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(PaymentsApplication.class, args);
+        SpringApplication.run(PaymentServiceApplication.class, args);
     }
 }

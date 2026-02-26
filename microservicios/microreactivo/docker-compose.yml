@@ -106,7 +106,39 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
-
+  payment-service:
+    build:
+      context: .
+      dockerfile: paymentService/Dockerfile
+    container_name: payment-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
+      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN}
+      MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET}
+      MERCADOPAGO_CLIENT_ID: ${MERCADOPAGO_CLIENT_ID}
+      MERCADOPAGO_CLIENT_SECRET: ${MERCADOPAGO_CLIENT_SECRET}
+      MERCADOPAGO_REDIRECT_URI: ${MERCADOPAGO_REDIRECT_URI}
+      MP_FEE_PERCENT: ${MP_FEE_PERCENT:-10}
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      motel-management-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    networks:
+      - ubik-network
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
   # ===========================================
   # API GATEWAY
   # ===========================================

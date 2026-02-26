@@ -1,63 +1,46 @@
 server:
-  port: 8080
+  port: 8085
 
 spring:
   application:
-    name: payments-checkout-pro
+    name: payment-service
 
   r2dbc:
-    url: ${R2DBC_URL:r2dbc:postgresql://localhost:5432/payments}
-    username: ${DB_USERNAME:payments_user}
-    password: ${DB_PASSWORD:payments_pass}
+    url: ${SPRING_R2DBC_URL}
+    username: ${SPRING_R2DBC_USERNAME}
+    password: ${SPRING_R2DBC_PASSWORD}
     pool:
-      initial-size: 5
-      max-size: 20
+      initial-size: 3
+      max-size: 10
       max-idle-time: 30m
 
-  flyway:
-    enabled: true
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/payments}
-    user: ${DB_USERNAME:payments_user}
-    password: ${DB_PASSWORD:payments_pass}
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
+  sql:
+    init:
+      mode: never
 
 mercadopago:
-  access-token: ${MP_ACCESS_TOKEN}
-  webhook-secret: ${MP_WEBHOOK_SECRET}
-  notification-url: ${MP_NOTIFICATION_URL}
-  back-urls:
-    success: ${MP_BACK_URL_SUCCESS}
-    pending: ${MP_BACK_URL_PENDING}
-    failure: ${MP_BACK_URL_FAILURE}
-  webhook-skew-millis: 300000
-  connection-timeout-ms: 2000
-  socket-timeout-ms: 5000
+  access-token: ${MERCADOPAGO_ACCESS_TOKEN}        # Tu token de marketplace
+  client-id: ${MERCADOPAGO_CLIENT_ID}              # Tu app ID en MP
+  client-secret: ${MERCADOPAGO_CLIENT_SECRET}      # Tu app secret en MP
+  redirect-uri: ${MERCADOPAGO_REDIRECT_URI}        # https://ubik.app/api/payments/oauth/callback
+  webhook-secret: ${MERCADOPAGO_WEBHOOK_SECRET}
+  marketplace-fee-percent: ${MP_FEE_PERCENT:10}    # % de comisión, default 10%
 
-app:
-  internal-api-key: ${APP_INTERNAL_API_KEY:changeme}
-  rate-limit:
-    writes-per-minute: 30
-    webhook-per-minute: 120
+services:
+  motel-management:
+    url: http://motel-management-service:8083
+  notification:
+    url: http://notification-service:8084
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info
   endpoint:
     health:
       show-details: always
-  prometheus:
-    metrics:
-      export:
-        enabled: true
 
 logging:
   level:
-    com.acme.payments: INFO
-    org.springframework.data.r2dbc: WARN
+    com.ubik.paymentservice: DEBUG
