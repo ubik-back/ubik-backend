@@ -19,4 +19,12 @@ public interface NotificationPort {
             String phone,
             String rnt
     );
+    Mono<Void> sendRoomCreationNotification(
+            String email,
+            String motelName,
+            String roomName,
+            String roomNumber,
+            String price,
+            String createdAt
+    );
 }
