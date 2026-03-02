@@ -3,14 +3,13 @@ package com.ubik.motelmanagement.infrastructure.adapter.in.web.controller;
 import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.domain.service.MotelServiceWithImages;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateMotelRequest;
+import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.MotelDtoMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -19,9 +18,9 @@ import java.util.List;
  * Controlador extendido para Moteles con gestión de imágenes.
  *
  * Endpoints:
- * - POST   /api/motels/with-images         (multipart) crea motel + sube imágenes (GALLERY)
- * - POST   /api/motels/{id}/images         (multipart) agrega imágenes (GALLERY)
- * - PUT    /api/motels/{id}/with-images    (multipart) actualiza motel y reemplaza galería
+ * - POST   /api/motels/with-images         (json) crea motel con URLs de imágenes (GALLERY)
+ * - POST   /api/motels/{id}/images         (json) agrega URLs de imágenes (GALLERY)
+ * - PUT    /api/motels/{id}/with-images    (json) actualiza motel y reemplaza galería con URLs
  * - DELETE /api/motels/{id}/images         (json array urls) elimina imágenes por URL
  */
 @RestController
@@ -38,11 +37,10 @@ public class MotelWithImagesController {
         this.motelDtoMapper = motelDtoMapper;
     }
 
-    @PostMapping(value = "/with-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/with-images", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<MotelResponse> createMotelWithImages(
-            @RequestPart("motelData") CreateMotelRequest motelData,
-            @RequestPart("images") Flux<FilePart> images,
+            @RequestBody CreateMotelRequest motelData,
             ServerWebExchange exchange) {
 
         String userIdHeader = exchange.getRequest().getHeaders().getFirst("X-User-Id");
@@ -79,30 +77,31 @@ public class MotelWithImagesController {
                 motel.legalDocumentUrl()
         );
 
-        return motelServiceWithImages.createMotelWithImages(motelWithOwner, images)
+        return motelServiceWithImages.createMotelWithImages(motelWithOwner)
                 .map(motelDtoMapper::toResponse);
     }
 
-    @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/{id}/images", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<MotelResponse> addImagesToMotel(
             @PathVariable Long id,
-            @RequestPart("images") Flux<FilePart> images) {
+            @RequestBody List<String> imageUrls) {
 
-        return motelServiceWithImages.addImagesToMotel(id, images)
+        return motelServiceWithImages.addImagesToMotel(id, imageUrls)
                 .map(motelDtoMapper::toResponse);
     }
 
-    @PutMapping(value = "/{id}/with-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{id}/with-images", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<MotelResponse> updateMotelWithImages(
             @PathVariable Long id,
-            @RequestPart("motelData") CreateMotelRequest motelData,
-            @RequestPart(value = "images", required = false) Flux<FilePart> images) {
+            @RequestBody UpdateMotelRequest motelData) {
 
         Motel motel = motelDtoMapper.toDomain(motelData);
 
-        return motelServiceWithImages.updateMotelWithImages(id, motel, images)
+        return motelServiceWithImages.updateMotelWithImages(id, motel)
                 .map(motelDtoMapper::toResponse);
     }
+
+
 
     @DeleteMapping("/{id}/images")
     public Mono<MotelResponse> removeImagesFromMotel(

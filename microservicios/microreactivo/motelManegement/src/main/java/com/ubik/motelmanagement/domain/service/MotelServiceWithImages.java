@@ -7,7 +7,6 @@ import com.ubik.motelmanagement.domain.port.out.MotelRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.UserPort;
 import com.ubik.motelmanagement.infrastructure.service.CloudinaryService;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,47 +38,38 @@ public class MotelServiceWithImages {
     }
 
     /**
-     * Crea un motel y sube sus imágenes a Cloudinary (GALLERY)
+     * Crea un motel con imágenes ya subidas a Cloudinary (GALLERY)
      */
-    public Mono<Motel> createMotelWithImages(Motel motel, Flux<FilePart> imageFiles) {
-        return cloudinaryService.uploadMultipleImages(imageFiles, "motels")
-                .collectList()
-                .flatMap(urls -> {
-                    List<MotelImage> gallery = urlsToGallery(urls, 1);
+    public Mono<Motel> createMotelWithImages(Motel motel) {
+        Motel motelWithImages = new Motel(
+                null,
+                motel.name(),
+                motel.address(),
+                motel.phoneNumber(),
+                motel.description(),
+                motel.city(),
+                motel.propertyId(),
+                motel.dateCreated(),
+                motel.imageUrls(), // Ya vienen mapeadas como GALLERY en el DTO Mapper
+                motel.latitude(),
+                motel.longitude(),
+                Motel.ApprovalStatus.PENDING,
+                null,
+                null,
+                null,
+                motel.rues(),
+                motel.rnt(),
+                motel.ownerDocumentType(),
+                motel.ownerDocumentNumber(),
+                motel.ownerFullName(),
+                motel.legalRepresentativeName(),
+                motel.legalDocumentUrl()
+        );
 
-                    Motel motelWithImages = new Motel(
-                            null,
-                            motel.name(),
-                            motel.address(),
-                            motel.phoneNumber(),
-                            motel.description(),
-                            motel.city(),
-                            motel.propertyId(),
-                            motel.dateCreated(),
-                            gallery,
-                            motel.latitude(),
-                            motel.longitude(),
-                            Motel.ApprovalStatus.PENDING,
-                            null,
-                            null,
-                            null,
-                            motel.rues(),
-                            motel.rnt(),
-                            motel.ownerDocumentType(),
-                            motel.ownerDocumentNumber(),
-                            motel.ownerFullName(),
-                            motel.legalRepresentativeName(),
-                            motel.legalDocumentUrl()
-                    );
-
-                    return motelRepositoryPort.save(motelWithImages);
-                })
+        return motelRepositoryPort.save(motelWithImages)
                 .flatMap(savedMotel ->
-
                         userPort.getUserById(savedMotel.propertyId())
-
                                 .flatMap(user ->
-
                                         notificationPort.sendMotelCreationNotification(
                                                         user.email(),
                                                         savedMotel.name(),
@@ -91,133 +81,99 @@ public class MotelServiceWithImages {
                                                 .onErrorResume(error -> Mono.empty())
                                                 .thenReturn(savedMotel)
                                 )
-
-                                // Si no encuentra usuario, no romper creación
                                 .defaultIfEmpty(savedMotel)
                 );
-
     }
 
     /**
-     * Actualiza un motel y reemplaza sus imágenes de galería (borra en Cloudinary las existentes)
+     * Actualiza un motel y reemplaza sus imágenes de galería (borra en Cloudinary las existentes que ya no estén)
      */
     public Mono<Motel> updateMotelWithImages(
             Long id,
-            Motel motel,
-            Flux<FilePart> imageFiles) {
+            Motel motel) {
 
         return motelRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Motel no encontrado")))
                 .flatMap(existingMotel -> {
-                    if (imageFiles != null) {
-                        return deleteExistingImages(existingMotel.imageUrls())
-                                .then(cloudinaryService.uploadMultipleImages(imageFiles, "motels").collectList())
-                                .flatMap(newUrls -> {
-                                    List<MotelImage> gallery = urlsToGallery(newUrls, 1);
+                    // Identificar imágenes a borrar en Cloudinary (estaban antes y ya no están)
+                    List<MotelImage> imagesToDelete = existingMotel.imageUrls().stream()
+                            .filter(oldImg -> motel.imageUrls().stream()
+                                    .noneMatch(newImg -> newImg.url().equals(oldImg.url())))
+                            .toList();
 
-                                    // Reemplazamos TODAS las imágenes por nueva galería.
-                                    Motel updatedMotel = new Motel(
-                                            id,
-                                            motel.name(),
-                                            motel.address(),
-                                            motel.phoneNumber(),
-                                            motel.description(),
-                                            motel.city(),
-                                            existingMotel.propertyId(),
-                                            existingMotel.dateCreated(),
-                                            gallery,
-                                            motel.latitude(),
-                                            motel.longitude(),
-                                            existingMotel.approvalStatus(),
-                                            existingMotel.approvalDate(),
-                                            existingMotel.approvedByUserId(),
-                                            existingMotel.rejectionReason(),
-                                            motel.rues(),
-                                            motel.rnt(),
-                                            motel.ownerDocumentType(),
-                                            motel.ownerDocumentNumber(),
-                                            motel.ownerFullName(),
-                                            motel.legalRepresentativeName(),
-                                            motel.legalDocumentUrl()
-                                    );
-                                    return motelRepositoryPort.update(updatedMotel);
-                                });
-                    }
-
-                    // Actualizar sin cambiar imágenes
-                    Motel updatedMotel = new Motel(
-                            id,
-                            motel.name(),
-                            motel.address(),
-                            motel.phoneNumber(),
-                            motel.description(),
-                            motel.city(),
-                            existingMotel.propertyId(),
-                            existingMotel.dateCreated(),
-                            existingMotel.imageUrls(),
-                            motel.latitude(),
-                            motel.longitude(),
-                            existingMotel.approvalStatus(),
-                            existingMotel.approvalDate(),
-                            existingMotel.approvedByUserId(),
-                            existingMotel.rejectionReason(),
-                            motel.rues(),
-                            motel.rnt(),
-                            motel.ownerDocumentType(),
-                            motel.ownerDocumentNumber(),
-                            motel.ownerFullName(),
-                            motel.legalRepresentativeName(),
-                            motel.legalDocumentUrl()
-                    );
-                    return motelRepositoryPort.update(updatedMotel);
+                    return deleteExistingImages(imagesToDelete)
+                            .then(Mono.defer(() -> {
+                                Motel updatedMotel = new Motel(
+                                        id,
+                                        motel.name(),
+                                        motel.address(),
+                                        motel.phoneNumber(),
+                                        motel.description(),
+                                        motel.city(),
+                                        existingMotel.propertyId(),
+                                        existingMotel.dateCreated(),
+                                        motel.imageUrls(), // Las nuevas imágenes
+                                        motel.latitude(),
+                                        motel.longitude(),
+                                        existingMotel.approvalStatus(),
+                                        existingMotel.approvalDate(),
+                                        existingMotel.approvedByUserId(),
+                                        existingMotel.rejectionReason(),
+                                        motel.rues(),
+                                        motel.rnt(),
+                                        motel.ownerDocumentType(),
+                                        motel.ownerDocumentNumber(),
+                                        motel.ownerFullName(),
+                                        motel.legalRepresentativeName(),
+                                        motel.legalDocumentUrl()
+                                );
+                                return motelRepositoryPort.update(updatedMotel);
+                            }));
                 });
     }
 
     /**
-     * Agrega imágenes adicionales a un motel existente (GALLERY)
+     * Agrega imágenes adicionales (URLs) a un motel existente (GALLERY)
      */
-    public Mono<Motel> addImagesToMotel(Long motelId, Flux<FilePart> imageFiles) {
+    public Mono<Motel> addImagesToMotel(Long motelId, List<String> newImageUrls) {
         return motelRepositoryPort.findById(motelId)
                 .switchIfEmpty(Mono.error(new RuntimeException("Motel no encontrado")))
-                .flatMap(existingMotel ->
-                        cloudinaryService.uploadMultipleImages(imageFiles, "motels")
-                                .collectList()
-                                .flatMap(newUrls -> {
-                                    int nextOrder = nextGalleryOrder(existingMotel.imageUrls());
-                                    List<MotelImage> newGallery = urlsToGallery(newUrls, nextOrder);
+                .flatMap(existingMotel -> {
+                    int nextOrder = nextGalleryOrder(existingMotel.imageUrls());
+                    List<MotelImage> newGallery = urlsToGallery(newImageUrls, nextOrder);
 
-                                    List<MotelImage> all = new ArrayList<>(existingMotel.imageUrls());
-                                    all.addAll(newGallery);
+                    List<MotelImage> all = new ArrayList<>(existingMotel.imageUrls());
+                    all.addAll(newGallery);
 
-                                    Motel updatedMotel = new Motel(
-                                            existingMotel.id(),
-                                            existingMotel.name(),
-                                            existingMotel.address(),
-                                            existingMotel.phoneNumber(),
-                                            existingMotel.description(),
-                                            existingMotel.city(),
-                                            existingMotel.propertyId(),
-                                            existingMotel.dateCreated(),
-                                            all,
-                                            existingMotel.latitude(),
-                                            existingMotel.longitude(),
-                                            existingMotel.approvalStatus(),
-                                            existingMotel.approvalDate(),
-                                            existingMotel.approvedByUserId(),
-                                            existingMotel.rejectionReason(),
-                                            existingMotel.rues(),
-                                            existingMotel.rnt(),
-                                            existingMotel.ownerDocumentType(),
-                                            existingMotel.ownerDocumentNumber(),
-                                            existingMotel.ownerFullName(),
-                                            existingMotel.legalRepresentativeName(),
-                                            existingMotel.legalDocumentUrl()
-                                    );
+                    Motel updatedMotel = new Motel(
+                            existingMotel.id(),
+                            existingMotel.name(),
+                            existingMotel.address(),
+                            existingMotel.phoneNumber(),
+                            existingMotel.description(),
+                            existingMotel.city(),
+                            existingMotel.propertyId(),
+                            existingMotel.dateCreated(),
+                            all,
+                            existingMotel.latitude(),
+                            existingMotel.longitude(),
+                            existingMotel.approvalStatus(),
+                            existingMotel.approvalDate(),
+                            existingMotel.approvedByUserId(),
+                            existingMotel.rejectionReason(),
+                            existingMotel.rues(),
+                            existingMotel.rnt(),
+                            existingMotel.ownerDocumentType(),
+                            existingMotel.ownerDocumentNumber(),
+                            existingMotel.ownerFullName(),
+                            existingMotel.legalRepresentativeName(),
+                            existingMotel.legalDocumentUrl()
+                    );
 
-                                    return motelRepositoryPort.update(updatedMotel);
-                                })
-                );
+                    return motelRepositoryPort.update(updatedMotel);
+                });
     }
+
 
     /**
      * Elimina imágenes específicas (por URL) de un motel
