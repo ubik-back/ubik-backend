@@ -9,8 +9,9 @@ public record PaymentResponse(
         Double amount,
         String currency,
         String status,
-        String initPoint,       // URL para redirigir al usuario a pagar
         String mercadoPagoPaymentId,
+        String mercadoPagoPreferenceId,
+        String initPoint,       // URL para redirigir al usuario a pagar
         String failureReason,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

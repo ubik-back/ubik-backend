@@ -7,6 +7,9 @@ public record CreatePaymentRequest(
         @NotNull(message = "reservationId es requerido")
         Long reservationId,
 
+        @NotNull(message = "motelId es requerido")
+        Long motelId,
+
         @NotNull @Positive(message = "amount debe ser mayor a 0")
         Double amount,
 

@@ -18,6 +18,9 @@ public record PaymentEntity(
         @Column("mercadopago_preference_id") String mercadoPagoPreferenceId,
         @Column("init_point") String initPoint,
         @Column("failure_reason") String failureReason,
+        @Column("marketplace_fee") Double marketplaceFee,
+        @Column("motel_id") Long motelId,
+        @Column("mp_collector_id") String mpCollectorId,
         @Column("created_at") LocalDateTime createdAt,
         @Column("updated_at") LocalDateTime updatedAt
 ) {}

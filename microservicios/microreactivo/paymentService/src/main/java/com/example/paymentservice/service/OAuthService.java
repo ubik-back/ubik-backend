@@ -148,4 +148,13 @@ public class OAuthService {
                     return Mono.just(account.accessToken());
                 });
     }
+
+    /**
+     * Elimina la vinculación de la cuenta de MercadoPago para un motel
+     */
+    public Mono<Void> disconnect(Long motelId) {
+        log.info("Desvinculando cuenta MP para motelId: {}", motelId);
+        return mpAccountRepository.findByMotelId(motelId)
+                .flatMap(mpAccountRepository::delete);
+    }
 }

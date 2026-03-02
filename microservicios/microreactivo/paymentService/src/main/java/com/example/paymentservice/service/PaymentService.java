@@ -1,12 +1,13 @@
 package com.example.paymentservice.service;
 
 import com.mercadopago.MercadoPagoConfig;
-import com.mercadopago.client.preference.*;
 import com.mercadopago.client.payment.PaymentClient;
+import com.mercadopago.client.payment.PaymentRefundClient;
+import com.mercadopago.client.preference.*;
+import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
 import com.example.paymentservice.client.MotelManagementClient;
 import com.example.paymentservice.client.NotificationClient;
-import com.example.paymentservice.domain.Payment;
 import com.example.paymentservice.domain.PaymentStatus;
 import com.example.paymentservice.dto.CreatePaymentRequest;
 import com.example.paymentservice.dto.PaymentResponse;
@@ -33,28 +34,29 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final MotelManagementClient motelManagementClient;
     private final NotificationClient notificationClient;
+    private final OAuthService oAuthService;
 
     @Value("${mercadopago.access-token}")
     private String accessToken;
 
+    @Value("${mercadopago.marketplace-fee-percent:10}")
+    private double marketplaceFeePercent;
+
     public PaymentService(
             PaymentRepository paymentRepository,
             MotelManagementClient motelManagementClient,
-            NotificationClient notificationClient) {
+            NotificationClient notificationClient,
+            OAuthService oAuthService) {
         this.paymentRepository = paymentRepository;
         this.motelManagementClient = motelManagementClient;
         this.notificationClient = notificationClient;
+        this.oAuthService = oAuthService;
     }
 
     @PostConstruct
     public void init() {
         MercadoPagoConfig.setAccessToken(accessToken);
     }
-
-    // ─── Crear preferencia de pago ────────────────────────────────────────────
-
-    @Value("${mercadopago.marketplace-fee-percent:10}")
-    private double marketplaceFeePercent;
 
     public Mono<PaymentResponse> createPayment(
             CreatePaymentRequest request,
@@ -64,19 +66,13 @@ public class PaymentService {
         log.info("Creando pago marketplace - reserva:{} motel:{} usuario:{}",
                 request.reservationId(), motelId, userId);
 
-        // 1. Obtener access_token vigente del motel
         return oAuthService.getValidAccessToken(motelId)
                 .flatMap(motelAccessToken -> {
-
-                    // 2. Calcular comisión
                     double fee = request.amount() * (marketplaceFeePercent / 100.0);
                     String currency = request.currency() != null ? request.currency() : "COP";
 
-                    // 3. Crear preferencia usando el token DEL MOTEL
                     return Mono.fromCallable(() -> {
-                                // Configurar SDK con el token del MOTEL
                                 MercadoPagoConfig.setAccessToken(motelAccessToken);
-
                                 PreferenceClient client = new PreferenceClient();
 
                                 PreferenceItemRequest item = PreferenceItemRequest.builder()
@@ -97,7 +93,7 @@ public class PaymentService {
                                         .backUrls(backUrls)
                                         .autoReturn("approved")
                                         .externalReference(request.reservationId().toString())
-                                        .marketplaceFee(BigDecimal.valueOf(fee)) // Tu comisión
+                                        .marketplaceFee(BigDecimal.valueOf(fee))
                                         .build();
 
                                 return client.create(preferenceRequest);
@@ -115,167 +111,159 @@ public class PaymentService {
                                         preference.getId(),
                                         preference.getInitPoint(),
                                         null,
-                                        fee,        // marketplace_fee
-                                        motelId,    // motel_id
-                                        null,       // mp_collector_id (llega por webhook)
+                                        fee,
+                                        motelId,
+                                        null,
                                         LocalDateTime.now(),
                                         LocalDateTime.now()
                                 );
                                 return paymentRepository.save(entity);
-                            });
-                })
-                .map(this::toResponse)
-                .doOnError(e -> log.error("Error creando pago marketplace: {}", e.getMessage()));
+                            })
+                            .map(this::mapToResponse);
+                });
     }
-
-    // ─── Consultar estado ────────────────────────────────────────────────────
 
     public Mono<PaymentResponse> getPaymentById(Long id) {
         return paymentRepository.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Pago no encontrado: " + id)))
-                .map(this::toResponse);
+                .map(this::mapToResponse);
     }
 
     public Flux<PaymentResponse> getPaymentsByReservation(Long reservationId) {
         return paymentRepository.findByReservationId(reservationId)
-                .map(this::toResponse);
+                .map(this::mapToResponse);
     }
 
     public Flux<PaymentResponse> getPaymentsByUser(Long userId) {
         return paymentRepository.findByUserId(userId)
-                .map(this::toResponse);
+                .map(this::mapToResponse);
     }
 
-    // ─── Procesar webhook de MercadoPago ─────────────────────────────────────
+    public Mono<Void> processWebhook(Long mpPaymentId) {
+        log.info("Procesando webhook para pago MP: {}", mpPaymentId);
 
-    public Mono<Void> processWebhook(String mpPaymentId) {
-        log.info("Procesando webhook para mpPaymentId: {}", mpPaymentId);
+        return paymentRepository.findByMercadoPagoPaymentId(mpPaymentId.toString())
+                .switchIfEmpty(fetchAndCreateFromMp(mpPaymentId))
+                .flatMap(payment -> {
+                    if (PaymentStatus.APPROVED.name().equals(payment.status())) {
+                        log.info("Pago {} ya estaba aprobado", mpPaymentId);
+                        return Mono.empty();
+                    }
 
-        return Mono.fromCallable(() -> {
-                    PaymentClient client = new PaymentClient();
-                    return client.get(Long.parseLong(mpPaymentId));
-                })
-                .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(mpPayment -> {
-                    String mpStatus = mpPayment.getStatus(); // "approved", "rejected", "pending"
-                    Long reservationId = Long.parseLong(mpPayment.getExternalReference());
-
-                    return paymentRepository.findByMercadoPagoPreferenceId(mpPayment.getOrder().getId().toString())
-                            .switchIfEmpty(paymentRepository.findByReservationId(reservationId).next())
-                            .flatMap(entity -> {
-                                PaymentStatus newStatus = mapMpStatus(mpStatus);
+                    return fetchPaymentFromMp(payment.motelId(), mpPaymentId)
+                            .flatMap(mpPayment -> {
+                                String newStatus = mapMpStatus(mpPayment.getStatus());
+                                log.info("Actualizando pago {} de {} a {}", mpPaymentId, payment.status(), newStatus);
 
                                 PaymentEntity updated = new PaymentEntity(
-                                        entity.id(),
-                                        entity.reservationId(),
-                                        entity.userId(),
-                                        entity.amount(),
-                                        entity.currency(),
-                                        newStatus.name(),
-                                        mpPaymentId,
-                                        entity.mercadoPagoPreferenceId(),
-                                        entity.initPoint(),
-                                        mpStatus.equals("rejected") ? mpPayment.getStatusDetail() : null,
-                                        entity.createdAt(),
+                                        payment.id(),
+                                        payment.reservationId(),
+                                        payment.userId(),
+                                        payment.amount(),
+                                        payment.currency(),
+                                        newStatus,
+                                        mpPaymentId.toString(),
+                                        payment.mercadoPagoPreferenceId(),
+                                        payment.initPoint(),
+                                        mpPayment.getStatusDetail(),
+                                        payment.marketplaceFee(),
+                                        payment.motelId(),
+                                        mpPayment.getCollectorId() != null ? mpPayment.getCollectorId().toString() : null,
+                                        payment.createdAt(),
                                         LocalDateTime.now()
                                 );
 
                                 return paymentRepository.save(updated)
-                                        .flatMap(saved -> handlePostPayment(saved, newStatus));
+                                        .flatMap(saved -> {
+                                            if (PaymentStatus.APPROVED.name().equals(newStatus)) {
+                                                return motelManagementClient.confirmReservation(saved.reservationId());
+                                            } else if (PaymentStatus.REJECTED.name().equals(newStatus)) {
+                                                return motelManagementClient.cancelReservation(saved.reservationId());
+                                            }
+                                            return Mono.empty();
+                                        });
                             });
                 })
-                .then()
-                .doOnError(e -> log.error("Error procesando webhook {}: {}", mpPaymentId, e.getMessage()));
+                .then();
     }
 
-    // ─── Acciones post-pago ───────────────────────────────────────────────────
-
-    private Mono<Void> handlePostPayment(PaymentEntity payment, PaymentStatus status) {
-        if (status == PaymentStatus.APPROVED) {
-            return motelManagementClient.confirmReservation(payment.reservationId())
-                    .then(notificationClient.sendPaymentApprovedEmail(
-                            // El email se obtendría del userManagement; por ahora placeholder
-                            "usuario@email.com",
-                            payment.reservationId(),
-                            payment.amount()
-                    ));
-        } else if (status == PaymentStatus.REJECTED) {
-            return motelManagementClient.cancelReservation(payment.reservationId())
-                    .then(notificationClient.sendPaymentRejectedEmail(
-                            "usuario@email.com",
-                            payment.reservationId()
-                    ));
-        }
-        return Mono.empty();
+    private Mono<PaymentEntity> fetchAndCreateFromMp(Long mpPaymentId) {
+        // En caso de que el webhook llegue antes de que hayamos guardado el record local
+        // (poco probable pero posible), o si el pago se hizo por fuera de la app
+        return Mono.empty(); // Por simplicidad, ignoramos pagos no registrados localmente
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
-
-    private PaymentStatus mapMpStatus(String mpStatus) {
-        return switch (mpStatus) {
-            case "approved" -> PaymentStatus.APPROVED;
-            case "rejected" -> PaymentStatus.REJECTED;
-            case "refunded" -> PaymentStatus.REFUNDED;
-            case "cancelled" -> PaymentStatus.CANCELLED;
-            default -> PaymentStatus.PENDING;
-        };
+    private Mono<Payment> fetchPaymentFromMp(Long motelId, Long mpPaymentId) {
+        return oAuthService.getValidAccessToken(motelId)
+                .flatMap(token -> Mono.fromCallable(() -> {
+                    MercadoPagoConfig.setAccessToken(token);
+                    PaymentClient client = new PaymentClient();
+                    return client.get(mpPaymentId);
+                }).subscribeOn(Schedulers.boundedElastic()));
     }
 
-    private PaymentResponse toResponse(PaymentEntity e) {
-        return new PaymentResponse(
-                e.id(),
-                e.reservationId(),
-                e.userId(),
-                e.amount(),
-                e.currency(),
-                e.status(),
-                e.initPoint(),
-                e.mercadoPagoPaymentId(),
-                e.failureReason(),
-                e.createdAt(),
-                e.updatedAt()
-        );
-    }
-    public Mono<PaymentResponse> refundPayment(Long paymentId) {
-        log.info("Procesando reembolso para pago {}", paymentId);
-
-        return paymentRepository.findById(paymentId)
-                .switchIfEmpty(Mono.error(new RuntimeException("Pago no encontrado: " + paymentId)))
-                .flatMap(entity -> {
-                    if (!PaymentStatus.APPROVED.name().equals(entity.status())) {
-                        return Mono.error(new IllegalStateException(
-                                "Solo se pueden reembolsar pagos aprobados. Estado actual: " + entity.status()));
+    public Mono<PaymentResponse> refundPayment(Long id) {
+        return paymentRepository.findById(id)
+                .flatMap(payment -> {
+                    if (!PaymentStatus.APPROVED.name().equals(payment.status())) {
+                        return Mono.error(new RuntimeException("Solo se pueden reembolsar pagos aprobados"));
                     }
 
-                    return Mono.fromCallable(() -> {
-                                com.mercadopago.client.payment.PaymentClient client =
-                                        new com.mercadopago.client.payment.PaymentClient();
-                                return client.refund(Long.parseLong(entity.mercadoPagoPaymentId()));
-                            })
-                            .subscribeOn(Schedulers.boundedElastic())
+                    return oAuthService.getValidAccessToken(payment.motelId())
+                            .flatMap(token -> Mono.fromCallable(() -> {
+                                MercadoPagoConfig.setAccessToken(token);
+                                PaymentRefundClient client = new PaymentRefundClient();
+                                return client.refund(Long.parseLong(payment.mercadoPagoPaymentId()));
+                            }).subscribeOn(Schedulers.boundedElastic()))
                             .flatMap(refund -> {
                                 PaymentEntity updated = new PaymentEntity(
-                                        entity.id(),
-                                        entity.reservationId(),
-                                        entity.userId(),
-                                        entity.amount(),
-                                        entity.currency(),
+                                        payment.id(),
+                                        payment.reservationId(),
+                                        payment.userId(),
+                                        payment.amount(),
+                                        payment.currency(),
                                         PaymentStatus.REFUNDED.name(),
-                                        entity.mercadoPagoPaymentId(),
-                                        entity.mercadoPagoPreferenceId(),
-                                        entity.initPoint(),
-                                        null,
-                                        entity.createdAt(),
+                                        payment.mercadoPagoPaymentId(),
+                                        payment.mercadoPagoPreferenceId(),
+                                        payment.initPoint(),
+                                        "Refunded by admin",
+                                        payment.marketplaceFee(),
+                                        payment.motelId(),
+                                        payment.mpCollectorId(),
+                                        payment.createdAt(),
                                         LocalDateTime.now()
                                 );
                                 return paymentRepository.save(updated);
                             })
-                            .flatMap(saved ->
-                                    motelManagementClient.cancelReservation(saved.reservationId())
-                                            .thenReturn(saved)
-                            )
-                            .map(this::toResponse);
-                })
-                .doOnError(e -> log.error("Error en reembolso {}: {}", paymentId, e.getMessage()));
+                            .map(this::mapToResponse);
+                });
+    }
+
+    private String mapMpStatus(String mpStatus) {
+        if (mpStatus == null) return PaymentStatus.PENDING.name();
+        return switch (mpStatus) {
+            case "approved" -> PaymentStatus.APPROVED.name();
+            case "rejected" -> PaymentStatus.REJECTED.name();
+            case "cancelled" -> PaymentStatus.CANCELLED.name();
+            case "refunded" -> PaymentStatus.REFUNDED.name();
+            case "in_process" -> PaymentStatus.PENDING.name();
+            default -> PaymentStatus.PENDING.name();
+        };
+    }
+
+    private PaymentResponse mapToResponse(PaymentEntity entity) {
+        return new PaymentResponse(
+                entity.id(),
+                entity.reservationId(),
+                entity.userId(),
+                entity.amount(),
+                entity.currency(),
+                entity.status(),
+                entity.mercadoPagoPaymentId(),
+                entity.mercadoPagoPreferenceId(),
+                entity.initPoint(),
+                entity.failureReason(),
+                entity.createdAt(),
+                entity.updatedAt()
+        );
     }
 }

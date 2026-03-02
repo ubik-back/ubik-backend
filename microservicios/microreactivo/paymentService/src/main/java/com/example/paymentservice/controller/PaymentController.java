@@ -48,7 +48,7 @@ public class PaymentController {
             return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "X-User-Id inválido"));
         }
 
-        return paymentService.createPayment(request, userId);
+        return paymentService.createPayment(request, userId, request.motelId());
     }
 
     /**

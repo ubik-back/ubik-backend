@@ -53,8 +53,6 @@ public class OAuthController {
     @DeleteMapping("/{motelId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> disconnect(@PathVariable Long motelId) {
-        return oAuthService.getMpAccountRepository()
-                .findByMotelId(motelId)
-                .flatMap(account -> oAuthService.getMpAccountRepository().delete(account));
+        return oAuthService.disconnect(motelId);
     }
 }
