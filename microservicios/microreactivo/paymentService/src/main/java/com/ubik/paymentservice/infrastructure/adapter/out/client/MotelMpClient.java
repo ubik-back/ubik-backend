@@ -1,6 +1,6 @@
 package com.ubik.paymentservice.infrastructure.adapter.out.client;
 
-import com.example.paymentservice.repository.MotelMpAccountRepository;
+import com.ubik.paymentservice.infrastructure.adapter.out.persistence.repository.MotelMpAccountRepository;
 import com.ubik.paymentservice.domain.port.out.MotelMpPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ public class MotelMpClient implements MotelMpPort {
 
     @Override
     public Mono<String> getAccessToken(Long motelId) {
-        log.info("Buscando access_token para motelId={} en base de datos local", motelId);
+        log.info("Buscando access_token para motelId={} en base de datos local (com.ubik)", motelId);
         
         return mpAccountRepository.findByMotelId(motelId)
                 .map(account -> {
@@ -30,7 +30,7 @@ public class MotelMpClient implements MotelMpPort {
                 })
                 .switchIfEmpty(Mono.error(new ResponseStatusException(
                         HttpStatus.UNPROCESSABLE_ENTITY, 
-                        "El motel " + motelId + " no ha vinculado su cuenta de MercadoPago en el sistema de pagos."
+                        "El motel " + motelId + " no ha vinculado su cuenta de MercadoPago en el sistema de pagos (Local DB)."
                 )));
     }
 }
