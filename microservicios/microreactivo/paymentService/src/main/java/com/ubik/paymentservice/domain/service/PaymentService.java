@@ -92,8 +92,16 @@ public class PaymentService implements PaymentUseCase {
                 )
                 .map(PaymentResponse::from)
                 .doOnSuccess(r -> log.info("✅ Preferencia creada correctamente preferenceId={}", r.mercadopagoPreferenceId()))
-                .doOnError(e -> log.error("❌ ERROR CRÍTICO creando pago para reserva={}: {} - Causa: {}", 
-                        request.reservationId(), e.getMessage(), e.getCause(), e));
+                .doOnError(e -> {
+                    if (e instanceof com.mercadopago.exceptions.MPApiException apiEx) {
+                        log.error("❌ ERROR API MERCADOPAGO: Status: {} - Content: {}", 
+                            apiEx.getApiResponse().getStatusCode(), 
+                            apiEx.getApiResponse().getContent());
+                    } else {
+                        log.error("❌ ERROR CRÍTICO creando pago para reserva={}: {}", 
+                            request.reservationId(), e.getMessage(), e);
+                    }
+                });
     }
 
     private Mono<Preference> createPreference(Payment payment, String accessToken, BigDecimal fee) {
