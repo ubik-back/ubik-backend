@@ -70,7 +70,7 @@ public class OAuthService {
                     String accessToken  = (String) response.get("access_token");
                     String refreshToken = (String) response.get("refresh_token");
                     String mpUserId     = response.get("user_id").toString();
-                    Integer expiresIn   = (Integer) response.get("expires_in");
+                    Integer expiresIn   = ((Number) response.get("expires_in")).intValue();
 
                     return mpAccountRepository.findByMotelId(motelId)
                             .defaultIfEmpty(new MotelMpAccountEntity(
@@ -120,7 +120,7 @@ public class OAuthService {
                                     account.mpUserId(),
                                     (String) response.get("access_token"),
                                     (String) response.get("refresh_token"),
-                                    LocalDateTime.now().plusSeconds((Integer) response.get("expires_in")),
+                                    LocalDateTime.now().plusSeconds(((Number) response.get("expires_in")).longValue()),
                                     account.mpEmail(),
                                     account.createdAt(),
                                     LocalDateTime.now()

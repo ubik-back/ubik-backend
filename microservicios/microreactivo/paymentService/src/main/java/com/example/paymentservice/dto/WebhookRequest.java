@@ -8,5 +8,5 @@ public record WebhookRequest(
         @JsonProperty("data")
         WebhookData data
 ) {
-    public record WebhookData(String id) {}
+    public record WebhookData(Long id) {}
 }
