@@ -17,12 +17,15 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -63,43 +66,61 @@ public class PaymentService {
             Long userId,
             Long motelId) {
 
-        log.info("Creando pago marketplace - reserva:{} motel:{} usuario:{}",
-                request.reservationId(), motelId, userId);
+        log.info("🚀 Iniciando creación de pago - Reserva: {} para Motel: {}", request.reservationId(), motelId);
 
         return oAuthService.getValidAccessToken(motelId)
+                .onErrorMap(e -> {
+                    log.error("❌ Error obteniendo token del motel: {}", e.getMessage());
+                    return new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+                })
                 .flatMap(motelAccessToken -> {
                     double fee = request.amount() * (marketplaceFeePercent / 100.0);
-                    String currency = request.currency() != null ? request.currency() : "COP";
+                    // Redondear a 2 decimales para evitar errores de MP
+                    BigDecimal roundedFee = BigDecimal.valueOf(fee).setScale(2, RoundingMode.HALF_UP);
+                    String currency = (request.currency() != null) ? request.currency() : "COP";
 
                     return Mono.fromCallable(() -> {
-                                MercadoPagoConfig.setAccessToken(motelAccessToken);
-                                PreferenceClient client = new PreferenceClient();
+                                try {
+                                    log.debug("🔑 Configurando token de motel en SDK de MP");
+                                    MercadoPagoConfig.setAccessToken(motelAccessToken);
+                                    
+                                    PreferenceClient client = new PreferenceClient();
 
-                                PreferenceItemRequest item = PreferenceItemRequest.builder()
-                                        .title("Reserva UBIK #" + request.reservationId())
-                                        .quantity(1)
-                                        .unitPrice(BigDecimal.valueOf(request.amount()))
-                                        .currencyId(currency)
-                                        .build();
+                                    PreferenceItemRequest item = PreferenceItemRequest.builder()
+                                            .title("Reserva UBIK #" + request.reservationId())
+                                            .quantity(1)
+                                            .unitPrice(BigDecimal.valueOf(request.amount()))
+                                            .currencyId(currency)
+                                            .build();
 
-                                PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                                        .success("https://ubik.app/payment/success")
-                                        .failure("https://ubik.app/payment/failure")
-                                        .pending("https://ubik.app/payment/pending")
-                                        .build();
+                                    PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                                            .success("https://ubik-back.duckdns.org/payment/success")
+                                            .failure("https://ubik-back.duckdns.org/payment/failure")
+                                            .pending("https://ubik-back.duckdns.org/payment/pending")
+                                            .build();
 
-                                PreferenceRequest preferenceRequest = PreferenceRequest.builder()
-                                        .items(List.of(item))
-                                        .backUrls(backUrls)
-                                        .autoReturn("approved")
-                                        .externalReference(request.reservationId().toString())
-                                        .marketplaceFee(BigDecimal.valueOf(fee))
-                                        .build();
+                                    PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+                                            .items(List.of(item))
+                                            .backUrls(backUrls)
+                                            .autoReturn("approved")
+                                            .externalReference(request.reservationId().toString())
+                                            .marketplaceFee(roundedFee)
+                                            .build();
 
-                                return client.create(preferenceRequest);
+                                    log.info("📡 Llamando a Mercado Pago para crear preferencia...");
+                                    return client.create(preferenceRequest);
+                                } catch (Exception e) {
+                                    log.error("❌ Error interno SDK Mercado Pago: {}", e.getMessage());
+                                    throw new RuntimeException("Fallo al contactar con Mercado Pago: " + e.getMessage());
+                                } finally {
+                                    // Restaurar el token de la plataforma por seguridad
+                                    MercadoPagoConfig.setAccessToken(accessToken);
+                                }
                             })
                             .subscribeOn(Schedulers.boundedElastic())
                             .flatMap(preference -> {
+                                log.info("✅ Preferencia creada en MP: {}", preference.getId());
+                                
                                 PaymentEntity entity = new PaymentEntity(
                                         null,
                                         request.reservationId(),
@@ -111,16 +132,19 @@ public class PaymentService {
                                         preference.getId(),
                                         preference.getInitPoint(),
                                         null,
-                                        fee,
+                                        roundedFee.doubleValue(),
                                         motelId,
                                         null,
                                         LocalDateTime.now(),
                                         LocalDateTime.now()
                                 );
-                                return paymentRepository.save(entity);
+                                
+                                return paymentRepository.save(entity)
+                                        .doOnError(dbError -> log.error("❌ Error guardando pago en DB: {}", dbError.getMessage()));
                             })
                             .map(this::mapToResponse);
-                });
+                })
+                .doOnError(e -> log.error("🔥 Error crítico en createPayment: {}", e.getMessage()));
     }
 
     public Mono<PaymentResponse> getPaymentById(Long id) {
@@ -187,9 +211,7 @@ public class PaymentService {
     }
 
     private Mono<PaymentEntity> fetchAndCreateFromMp(Long mpPaymentId) {
-        // En caso de que el webhook llegue antes de que hayamos guardado el record local
-        // (poco probable pero posible), o si el pago se hizo por fuera de la app
-        return Mono.empty(); // Por simplicidad, ignoramos pagos no registrados localmente
+        return Mono.empty(); 
     }
 
     private Mono<Payment> fetchPaymentFromMp(Long motelId, Long mpPaymentId) {
