@@ -11,7 +11,7 @@ public class PaymentMapper {
         return new Payment(
                 e.id(), e.reservationId(), e.userId(), e.motelId(),
                 e.amount(), e.currency(), PaymentStatus.valueOf(e.status()),
-                e.mercadopagoPaymentId(), e.mercadopagoPreferenceId(),
+                e.mercadopagoPaymentId(), e.mercadopagoPreferenceId(), e.mercadopagoPublicKey(),
                 e.initPoint(), e.failureReason(), e.marketplaceFee(),
                 e.createdAt(), e.updatedAt()
         );
@@ -21,7 +21,7 @@ public class PaymentMapper {
         return new PaymentEntity(
                 p.id(), p.reservationId(), p.userId(), p.motelId(),
                 p.amount(), p.currency(), p.status().name(),
-                p.mercadopagoPaymentId(), p.mercadopagoPreferenceId(),
+                p.mercadopagoPaymentId(), p.mercadopagoPreferenceId(), p.mercadopagoPublicKey(),
                 p.initPoint(), p.failureReason(), p.marketplaceFee(),
                 p.createdAt(), p.updatedAt()
         );

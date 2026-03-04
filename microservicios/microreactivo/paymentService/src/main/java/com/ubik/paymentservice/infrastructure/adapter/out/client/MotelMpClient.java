@@ -20,13 +20,13 @@ public class MotelMpClient implements MotelMpPort {
     }
 
     @Override
-    public Mono<String> getAccessToken(Long motelId) {
-        log.info("Buscando access_token para motelId={} en base de datos local (com.ubik)", motelId);
+    public Mono<MotelMpCredentials> getCredentials(Long motelId) {
+        log.info("Buscando credenciales de MercadoPago para motelId={}", motelId);
         
         return mpAccountRepository.findByMotelId(motelId)
                 .map(account -> {
-                    log.info("✅ Token encontrado para motel={}", motelId);
-                    return account.accessToken();
+                    log.info("✅ Credenciales encontradas para motel={}", motelId);
+                    return new MotelMpCredentials(account.accessToken(), account.publicKey());
                 })
                 .switchIfEmpty(Mono.error(new ResponseStatusException(
                         HttpStatus.UNPROCESSABLE_ENTITY, 

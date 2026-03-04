@@ -18,6 +18,7 @@ public record PaymentEntity(
         @Column("status")                    String status,
         @Column("mercadopago_payment_id")    String mercadopagoPaymentId,
         @Column("mercadopago_preference_id") String mercadopagoPreferenceId,
+        @Column("mercadopago_public_key")    String mercadopagoPublicKey,
         @Column("init_point")                String initPoint,
         @Column("failure_reason")            String failureReason,
         @Column("marketplace_fee")           BigDecimal marketplaceFee,

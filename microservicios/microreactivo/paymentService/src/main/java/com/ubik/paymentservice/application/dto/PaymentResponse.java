@@ -17,17 +17,16 @@ public record PaymentResponse(
         String initPoint,
         String mercadopagoPreferenceId,
         String mercadopagoPaymentId,
+        String mercadopagoPublicKey,
         String failureReason,
-        BigDecimal marketplaceFee,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime createdAt
 ) {
     public static PaymentResponse from(Payment p) {
         return new PaymentResponse(
                 p.id(), p.reservationId(), p.userId(), p.motelId(),
                 p.amount(), p.currency(), p.status(),
                 p.initPoint(), p.mercadopagoPreferenceId(), p.mercadopagoPaymentId(),
-                p.failureReason(), p.marketplaceFee(), p.createdAt(), p.updatedAt()
+                p.mercadopagoPublicKey(), p.failureReason(), p.createdAt()
         );
     }
 }

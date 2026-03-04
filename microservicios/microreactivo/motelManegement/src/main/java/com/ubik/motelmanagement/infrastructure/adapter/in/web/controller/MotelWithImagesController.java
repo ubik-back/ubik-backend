@@ -1,10 +1,11 @@
 package com.ubik.motelmanagement.infrastructure.adapter.in.web.controller;
 
+
 import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.domain.service.MotelServiceWithImages;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateMotelRequest;
-import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
+import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.UpdateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.MotelDtoMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

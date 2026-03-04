@@ -12,6 +12,7 @@ public record MotelMpAccountEntity(
         @Column("motel_id") Long motelId,
         @Column("mp_user_id") String mpUserId,
         @Column("access_token") String accessToken,
+        @Column("public_key") String publicKey,
         @Column("refresh_token") String refreshToken,
         @Column("token_expires_at") LocalDateTime tokenExpiresAt,
         @Column("mp_email") String mpEmail,

@@ -31,25 +31,6 @@ public record Motel(
         String legalRepresentativeName,   // Representante legal (si aplica)
         String legalDocumentUrl           // URL del documento legal principal
 ) {
-    /**
-     * Estados de aprobación del motel
-     */
-    public enum ApprovalStatus {
-        PENDING,        // Pendiente de revisión
-        UNDER_REVIEW,   // En proceso de revisión
-        APPROVED,       // Aprobado y activo
-        REJECTED        // Rechazado
-    }
-
-    /**
-     * Tipos de documento de identidad
-     */
-    public enum DocumentType {
-        CC,         // Cédula de Ciudadanía
-        NIT,        // Número de Identificación Tributaria
-        CE,         // Cédula de Extranjería
-        PASAPORTE   // Pasaporte
-    }
 
     /**
      * Constructor para actualización (mantiene ID, fecha de creación y estado de aprobación)
