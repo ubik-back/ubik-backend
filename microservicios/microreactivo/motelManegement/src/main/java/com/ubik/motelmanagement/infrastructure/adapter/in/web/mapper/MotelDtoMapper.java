@@ -2,6 +2,9 @@ package com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper;
 
 import com.ubik.motelmanagement.domain.model.ImageRole;
 import com.ubik.motelmanagement.domain.model.Motel;
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
+import com.ubik.motelmanagement.domain.model.DocumentType;
+import com.ubik.motelmanagement.domain.model.DocumentType;
 import com.ubik.motelmanagement.domain.model.MotelImage;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateMotelRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.MotelResponse;
@@ -18,7 +21,7 @@ public class MotelDtoMapper {
     public Motel toDomain(CreateMotelRequest request) {
         if (request == null) return null;
 
-        Motel.DocumentType docType = parseDocumentTypeOrThrow(request.ownerDocumentType());
+        DocumentType docType = parseDocumentTypeOrThrow(request.ownerDocumentType());
 
         List<MotelImage> images = urlsToGalleryImages(request.imageUrls());
 
@@ -34,7 +37,7 @@ public class MotelDtoMapper {
                 images,
                 request.latitude(),
                 request.longitude(),
-                Motel.ApprovalStatus.PENDING,
+                ApprovalStatus.PENDING,
                 null,
                 null,
                 null,
@@ -52,7 +55,7 @@ public class MotelDtoMapper {
         if (request == null) return null;
 
         // En update el docType puede venir null (según tu DTO actual)
-        Motel.DocumentType docType = parseDocumentTypeOrNull(request.ownerDocumentType());
+        DocumentType docType = parseDocumentTypeOrNull(request.ownerDocumentType());
 
         List<MotelImage> images = urlsToGalleryImages(request.imageUrls());
 
@@ -118,21 +121,21 @@ public class MotelDtoMapper {
     // Helpers
     // =========================
 
-    private Motel.DocumentType parseDocumentTypeOrThrow(String raw) {
+    private DocumentType parseDocumentTypeOrThrow(String raw) {
         if (raw == null || raw.isBlank()) {
             throw new IllegalArgumentException("Tipo de documento inválido: " + raw);
         }
         try {
-            return Motel.DocumentType.valueOf(raw.trim().toUpperCase());
+            return DocumentType.valueOf(raw.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Tipo de documento inválido: " + raw);
         }
     }
 
-    private Motel.DocumentType parseDocumentTypeOrNull(String raw) {
+    private DocumentType parseDocumentTypeOrNull(String raw) {
         if (raw == null || raw.isBlank()) return null;
         try {
-            return Motel.DocumentType.valueOf(raw.trim().toUpperCase());
+            return DocumentType.valueOf(raw.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Tipo de documento inválido: " + raw);
         }

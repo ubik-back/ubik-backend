@@ -2,6 +2,8 @@ package com.ubik.motelmanagement.domain.service;
 
 import com.ubik.motelmanagement.domain.model.ImageRole;
 import com.ubik.motelmanagement.domain.model.Motel;
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
+import com.ubik.motelmanagement.domain.model.DocumentType;
 import com.ubik.motelmanagement.domain.model.MotelImage;
 import com.ubik.motelmanagement.domain.port.out.MotelRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.NotificationPort;
@@ -53,7 +55,7 @@ public class MotelServiceWithImages {
                 motel.imageUrls(), // Ya vienen mapeadas como GALLERY en el DTO Mapper
                 motel.latitude(),
                 motel.longitude(),
-                Motel.ApprovalStatus.PENDING,
+                ApprovalStatus.PENDING,
                 null,
                 null,
                 null,
