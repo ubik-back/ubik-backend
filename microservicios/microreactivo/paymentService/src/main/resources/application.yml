@@ -18,25 +18,18 @@ spring:
     init:
       mode: never
 
-mercadopago:
-  access-token: ${MERCADOPAGO_ACCESS_TOKEN}
-  client-id: ${MERCADOPAGO_CLIENT_ID}
-  client-secret: ${MERCADOPAGO_CLIENT_SECRET}
-  redirect-uri: ${MERCADOPAGO_REDIRECT_URI}
-  webhook-secret: ${MERCADOPAGO_WEBHOOK_SECRET}
-  marketplace-fee-percent: ${MP_FEE_PERCENT:10}
-  notification-url: ${MP_NOTIFICATION_URL:http://localhost:8080/api/payments/webhook}
-  back-urls:
-    success: ${MP_BACK_URL_SUCCESS:http://localhost:4200/payment/success}
-    failure: ${MP_BACK_URL_FAILURE:http://localhost:4200/payment/failure}
-    pending: ${MP_BACK_URL_PENDING:http://localhost:4200/payment/pending}
+# ── Stripe ────────────────────────────────────────────────────────────────────
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
 
+# ── URLs inter-servicio ───────────────────────────────────────────────────────
 services:
   motel-management:
-    url: http://motel-management-service:8083
-  notification:
-    url: http://notification-service:8084
+    url: ${MOTEL_MANAGEMENT_URL:http://motel-management-service:8083}
 
+# ── Actuator ──────────────────────────────────────────────────────────────────
 management:
   endpoints:
     web:
@@ -46,6 +39,7 @@ management:
     health:
       show-details: always
 
+# ── Logging ───────────────────────────────────────────────────────────────────
 logging:
   level:
     com.ubik.paymentservice: DEBUG

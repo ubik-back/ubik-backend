@@ -331,7 +331,7 @@ public class ReservationService implements ReservationUseCasePort {
             return Mono.error(new IllegalArgumentException(
                     "La fecha de check-in debe ser anterior a la fecha de check-out"));
         }
-        if (reservation.checkInDate().isBefore(LocalDateTime.now())) {
+        if (reservation.checkInDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
             return Mono.error(new IllegalArgumentException(
                     "La fecha de check-in no puede ser en el pasado"));
         }

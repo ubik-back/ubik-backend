@@ -1,5 +1,7 @@
 package com.ubik.motelmanagement.infrastructure.adapter.out.persistence.mapper;
 
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
+import com.ubik.motelmanagement.domain.model.DocumentType;
 import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.domain.model.MotelImage;
 import com.ubik.motelmanagement.infrastructure.adapter.out.persistence.entity.MotelEntity;
@@ -34,15 +36,15 @@ public class MotelMapper {
                 entity.latitude(),
                 entity.longitude(),
                 entity.approvalStatus() != null
-                        ? Motel.ApprovalStatus.valueOf(entity.approvalStatus().toUpperCase())
-                        : Motel.ApprovalStatus.PENDING,
+                        ? ApprovalStatus.valueOf(entity.approvalStatus().toUpperCase())
+                        : ApprovalStatus.PENDING,
                 entity.approvalDate(),
                 entity.approvedByUserId(),
                 entity.rejectionReason(),
                 entity.rues(),
                 entity.rnt(),
                 entity.ownerDocumentType() != null
-                        ? Motel.DocumentType.valueOf(entity.ownerDocumentType().toUpperCase())
+                        ? DocumentType.valueOf(entity.ownerDocumentType().toUpperCase())
                         : null,
                 entity.ownerDocumentNumber(),
                 entity.ownerFullName(),
@@ -70,15 +72,15 @@ public class MotelMapper {
                 entity.latitude(),
                 entity.longitude(),
                 entity.approvalStatus() != null
-                        ? Motel.ApprovalStatus.valueOf(entity.approvalStatus().toUpperCase())
-                        : Motel.ApprovalStatus.PENDING,
+                        ? ApprovalStatus.valueOf(entity.approvalStatus().toUpperCase())
+                        : ApprovalStatus.PENDING,
                 entity.approvalDate(),
                 entity.approvedByUserId(),
                 entity.rejectionReason(),
                 entity.rues(),
                 entity.rnt(),
                 entity.ownerDocumentType() != null
-                        ? Motel.DocumentType.valueOf(entity.ownerDocumentType().toUpperCase())
+                        ? DocumentType.valueOf(entity.ownerDocumentType().toUpperCase())
                         : null,
                 entity.ownerDocumentNumber(),
                 entity.ownerFullName(),
@@ -106,7 +108,7 @@ public class MotelMapper {
                 motel.longitude(),
                 motel.approvalStatus() != null
                         ? motel.approvalStatus().name()
-                        : Motel.ApprovalStatus.PENDING.name(),
+                        : ApprovalStatus.PENDING.name(),
                 motel.approvalDate(),
                 motel.approvedByUserId(),
                 motel.rejectionReason(),

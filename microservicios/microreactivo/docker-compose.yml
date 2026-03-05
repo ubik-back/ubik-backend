@@ -49,9 +49,6 @@ services:
       ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
       ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
       ROLE_ID_USER: ${ROLE_ID_USER}
-      MERCADOPAGO_CLIENT_ID: ${MERCADOPAGO_CLIENT_ID}
-      MERCADOPAGO_CLIENT_SECRET: ${MERCADOPAGO_CLIENT_SECRET}
-      MERCADOPAGO_REDIRECT_URI: ${MERCADOPAGO_REDIRECT_URI}
       JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
       - ubik-network
@@ -103,21 +100,10 @@ services:
       SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
       SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
       SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
-      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN}
-      MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET}
-      MERCADOPAGO_CLIENT_ID: ${MERCADOPAGO_CLIENT_ID}
-      MERCADOPAGO_CLIENT_SECRET: ${MERCADOPAGO_CLIENT_SECRET}
-      MERCADOPAGO_REDIRECT_URI: ${MERCADOPAGO_REDIRECT_URI}
-      MP_PUBLIC_KEY: ${MP_PUBLIC_KEY}
-      MP_APP_ID: ${MP_APP_ID}
-      MP_USER_ID: ${MP_USER_ID}
-      MP_FEE_PERCENT: ${MP_FEE_PERCENT:-10}
-      MP_NOTIFICATION_URL: ${MP_NOTIFICATION_URL}
-      MP_BACK_URL_SUCCESS: ${MP_BACK_URL_SUCCESS}
-      MP_BACK_URL_FAILURE: ${MP_BACK_URL_FAILURE}
-      MP_BACK_URL_PENDING: ${MP_BACK_URL_PENDING}
-      MOTEL_MANAGEMENT_URL: ${MOTEL_MANAGEMENT_URL}
-      NOTIFICATION_URL: ${NOTIFICATION_URL}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      MOTEL_MANAGEMENT_URL: ${MOTEL_MANAGEMENT_URL:-http://motel-management-service:8083}
       JAVA_OPTS: "-Xmx512m -Xms256m"
     depends_on:
       motel-management-service:
@@ -171,27 +157,9 @@ services:
       retries: 5
       start_period: 90s
 
-  # ===========================================
-  # NGROK - TUNNEL PARA MERCADOPAGO WEBHOOK
-    # ===========================================
-  ngrok:
-    image: ngrok/ngrok:latest
-    container_name: ngrok
-    restart: unless-stopped
-    command: http gateway:8080 --url=${NGROK_DOMAIN} --pooling-enabled
-    environment:
-      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
-    ports:
-      - "4040:4040"
-    depends_on:
-      gateway:
-        condition: service_healthy
-    networks:
-      - ubik-network
-
 # ===========================================
 # NETWORKS
 # ===========================================
 networks:
   ubik-network:
-    external: true
+    driver: bridge
