@@ -1,5 +1,7 @@
 package com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper;
 
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
+import com.ubik.motelmanagement.domain.model.DocumentType;
 import com.ubik.motelmanagement.domain.model.ImageRole;
 import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.domain.model.ApprovalStatus;

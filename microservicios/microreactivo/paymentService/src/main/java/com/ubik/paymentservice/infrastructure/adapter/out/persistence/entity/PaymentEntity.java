@@ -4,24 +4,47 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Entidad de persistencia para la tabla "payments" (R2DBC / PostgreSQL).
+ * Sigue el mismo patrón que ReservationEntity en motelManagement.
+ */
 @Table("payments")
 public record PaymentEntity(
-        @Id                                  Long id,
-        @Column("reservation_id")            Long reservationId,
-        @Column("user_id")                   Long userId,
-        @Column("motel_id")                  Long motelId,
-        @Column("amount")                    BigDecimal amount,
-        @Column("currency")                  String currency,
-        @Column("status")                    String status,
-        @Column("mercadopago_payment_id")    String mercadopagoPaymentId,
-        @Column("mercadopago_preference_id") String mercadopagoPreferenceId,
-        @Column("mercadopago_public_key")    String mercadopagoPublicKey,
-        @Column("init_point")                String initPoint,
-        @Column("failure_reason")            String failureReason,
-        @Column("marketplace_fee")           BigDecimal marketplaceFee,
-        @Column("created_at")                LocalDateTime createdAt,
-        @Column("updated_at")                LocalDateTime updatedAt
-) {}
+
+        @Id
+        Long id,
+
+        @Column("reservation_id")
+        Long reservationId,
+
+        @Column("user_id")
+        Long userId,
+
+        @Column("motel_id")
+        Long motelId,
+
+        @Column("amount") // legado de MercadoPago, requerido NOT NULL
+        Long amount,
+
+        @Column("stripe_payment_intent_id")
+        String stripePaymentIntentId,
+
+        @Column("amount_cents")
+        Long amountCents,
+
+        String currency,
+
+        String status,         // almacenado como String (nombre del enum)
+
+        @Column("failure_message")
+        String failureMessage,
+
+        @Column("created_at")
+        LocalDateTime createdAt,
+
+        @Column("updated_at")
+        LocalDateTime updatedAt
+) {
+}

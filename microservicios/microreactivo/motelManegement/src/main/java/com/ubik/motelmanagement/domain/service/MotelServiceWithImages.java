@@ -1,5 +1,6 @@
 package com.ubik.motelmanagement.domain.service;
 
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
 import com.ubik.motelmanagement.domain.model.ImageRole;
 import com.ubik.motelmanagement.domain.model.Motel;
 import com.ubik.motelmanagement.domain.model.ApprovalStatus;
