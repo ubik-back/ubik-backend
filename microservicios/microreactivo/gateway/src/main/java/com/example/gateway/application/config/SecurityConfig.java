@@ -22,6 +22,9 @@ public class SecurityConfig {
     private static final String ROLE_ID_ADMIN =
             System.getenv().getOrDefault("ROLE_ID_ADMIN", "7392841056473829");
 
+    private static final String FRONTEND_URL =
+            System.getenv().getOrDefault("FRONTEND_URL", "https://ubik-app.vercel.app");
+
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(
             ServerHttpSecurity http,
@@ -64,7 +67,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        // Use explicit origins — wildcard "*" is invalid when allowCredentials=true per the CORS spec
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                normalizeUrl(FRONTEND_URL),
+                "https://*--ubik-app.vercel.app",
+                "http://localhost:*",
+                "http://127.0.0.1:*"
+        ));
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"
         ));
@@ -79,5 +88,10 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    /** Remove trailing slash from URLs so pattern matching works correctly */
+    private static String normalizeUrl(String url) {
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
     }
 }

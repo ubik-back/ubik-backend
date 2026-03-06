@@ -4,6 +4,30 @@ server:
 spring:
   cloud:
     gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "https://ubik-app.vercel.app"
+              - "https://*--ubik-app.vercel.app"
+              - "http://localhost:*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+              - HEAD
+            allowedHeaders: "*"
+            exposedHeaders:
+              - Authorization
+              - Content-Type
+              - X-User-Username
+              - X-User-Role
+              - X-User-Id
+            allowCredentials: true
+            maxAge: 3600
       routes:
         # ═══════════════════════════════════════════════════════
         # MOTEL MANAGEMENT - RUTAS AUTENTICADAS
