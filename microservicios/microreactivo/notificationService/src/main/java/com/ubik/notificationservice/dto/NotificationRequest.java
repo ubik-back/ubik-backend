@@ -59,16 +59,6 @@ public class NotificationRequest {
         this.message = message;
     }
 
-<<<<<<< HEAD
-    private byte[] attachment;
-    private String attachmentName;
-
-    public byte[] getAttachment() { return attachment; }
-    public void setAttachment(byte[] attachment) { this.attachment = attachment; }
-
-    public String getAttachmentName() { return attachmentName; }
-    public void setAttachmentName(String attachmentName) { this.attachmentName = attachmentName; }
-=======
     public byte[] getAttachment() {
         return attachment;
     }
@@ -84,5 +74,4 @@ public class NotificationRequest {
     public void setAttachmentName(String attachmentName) {
         this.attachmentName = attachmentName;
     }
->>>>>>> Stripe-payment
 }
