@@ -119,11 +119,13 @@ public class PaymentService implements PaymentUseCasePort {
                             .flatMap(payment -> {
                                 log.info("Pago {} actualizado a SUCCEEDED. Confirmando reserva {}",
                                         payment.id(), payment.reservationId());
+                                
                                 return reservationConfirmationPort.confirmReservation(payment.reservationId())
+                                        .then(generateAndSendInvoice(payment))
                                         .onErrorResume(e -> {
-                                            // No fallar el webhook si la confirmación falla —
+                                            // No fallar el webhook si la confirmación o factura fallan —
                                             // el pago ya está registrado como exitoso
-                                            log.error("Error confirmando reserva {}: {}",
+                                            log.error("Error post-pago (confirmación/factura) para reserva {}: {}",
                                                     payment.reservationId(), e.getMessage());
                                             return Mono.empty();
                                         })

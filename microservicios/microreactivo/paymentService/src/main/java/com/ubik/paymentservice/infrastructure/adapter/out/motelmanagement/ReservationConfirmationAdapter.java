@@ -38,4 +38,14 @@ public class ReservationConfirmationAdapter implements ReservationConfirmationPo
                 .doOnSuccess(v -> log.info("Reserva {} confirmada exitosamente", reservationId))
                 .doOnError(e -> log.error("Error confirmando reserva {}: {}", reservationId, e.getMessage()));
     }
+
+    @Override
+    public Mono<com.ubik.paymentservice.infrastructure.adapter.out.motelmanagement.dto.ReservationDto> getReservation(Long reservationId) {
+        log.info("Obteniendo detalles de la reserva {} desde motel-management-service", reservationId);
+        return webClient.get()
+                .uri("/api/reservations/{id}", reservationId)
+                .retrieve()
+                .bodyToMono(com.ubik.paymentservice.infrastructure.adapter.out.motelmanagement.dto.ReservationDto.class)
+                .doOnError(e -> log.error("Error obteniendo detalles de reserva {}: {}", reservationId, e.getMessage()));
+    }
 }

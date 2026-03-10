@@ -2,6 +2,8 @@ package com.ubik.motelmanagement.infrastructure.adapter.in.web.controller;
 
 import com.ubik.motelmanagement.domain.model.ApprovalStatus;
 import com.ubik.motelmanagement.domain.model.Motel;
+import com.ubik.motelmanagement.domain.model.ApprovalStatus;
+import com.ubik.motelmanagement.domain.model.DocumentType;
 import com.ubik.motelmanagement.domain.port.in.MotelUseCasePort;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.*;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.mapper.MotelDtoMapper;
