@@ -9,6 +9,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -52,8 +53,7 @@ public class NotificationService {
             helper.setText(dto.getMessage(), true); // true = HTML
 
             if (dto.getAttachment() != null && dto.getAttachmentName() != null) {
-                org.springframework.core.io.ByteArrayResource arrayResource = new org.springframework.core.io.ByteArrayResource(dto.getAttachment());
-                helper.addAttachment(dto.getAttachmentName(), arrayResource);
+                helper.addAttachment(dto.getAttachmentName(), new ByteArrayResource(dto.getAttachment()));
             }
 
             helper.setFrom("ubikApp3@gmail.com");

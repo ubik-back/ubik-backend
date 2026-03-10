@@ -6,9 +6,7 @@ import com.ubik.paymentservice.domain.port.in.PaymentUseCasePort;
 import com.ubik.paymentservice.domain.port.out.PaymentRepositoryPort;
 import com.ubik.paymentservice.domain.port.out.ReservationConfirmationPort;
 import com.ubik.paymentservice.domain.port.out.StripePort;
-import com.ubik.paymentservice.domain.port.out.UserManagementPort;
 import com.ubik.paymentservice.infrastructure.adapter.in.web.dto.CreatePaymentResponse;
-import com.ubik.paymentservice.infrastructure.adapter.out.notificationservice.NotificationClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,24 +24,27 @@ public class PaymentService implements PaymentUseCasePort {
     private final StripePort stripePort;
     private final PaymentRepositoryPort paymentRepository;
     private final ReservationConfirmationPort reservationConfirmationPort;
-    private final UserManagementPort userManagementPort;
-    private final NotificationClient notificationClient;
     private final InvoiceCreator invoiceCreator;
+    private final com.ubik.paymentservice.infrastructure.adapter.out.notification.NotificationAdapter notificationAdapter;
+    private final com.ubik.paymentservice.infrastructure.adapter.out.user.UserInfoAdapter userInfoAdapter;
+    private final com.ubik.paymentservice.infrastructure.adapter.out.motelmanagement.ReservationInfoAdapter reservationInfoAdapter;
 
     public PaymentService(
             StripePort stripePort,
             PaymentRepositoryPort paymentRepository,
             ReservationConfirmationPort reservationConfirmationPort,
-            UserManagementPort userManagementPort,
-            NotificationClient notificationClient,
-            InvoiceCreator invoiceCreator
+            InvoiceCreator invoiceCreator,
+            com.ubik.paymentservice.infrastructure.adapter.out.notification.NotificationAdapter notificationAdapter,
+            com.ubik.paymentservice.infrastructure.adapter.out.user.UserInfoAdapter userInfoAdapter,
+            com.ubik.paymentservice.infrastructure.adapter.out.motelmanagement.ReservationInfoAdapter reservationInfoAdapter
     ) {
         this.stripePort = stripePort;
         this.paymentRepository = paymentRepository;
         this.reservationConfirmationPort = reservationConfirmationPort;
-        this.userManagementPort = userManagementPort;
-        this.notificationClient = notificationClient;
         this.invoiceCreator = invoiceCreator;
+        this.notificationAdapter = notificationAdapter;
+        this.userInfoAdapter = userInfoAdapter;
+        this.reservationInfoAdapter = reservationInfoAdapter;
     }
 
     @Override
@@ -127,40 +128,39 @@ public class PaymentService implements PaymentUseCasePort {
                                             log.error("Error post-pago (confirmación/factura) para reserva {}: {}",
                                                     payment.reservationId(), e.getMessage());
                                             return Mono.empty();
-                                        });
+                                        })
+                                        .then(generateAndSendInvoice(payment));
                             });
                 });
     }
 
     private Mono<Void> generateAndSendInvoice(Payment payment) {
-        log.info("Generando factura para el pago: {}", payment.id());
-
         return Mono.zip(
-                reservationConfirmationPort.getReservation(payment.reservationId()),
-                userManagementPort.getUserProfile(payment.userId())
+                userInfoAdapter.getUserInfo(payment.userId()),
+                reservationInfoAdapter.getReservationInfo(payment.reservationId())
         ).flatMap(tuple -> {
-            var reservation = tuple.getT1();
-            var user = tuple.getT2();
+            var user = tuple.getT1();
+            var res = tuple.getT2();
 
-            try {
-                byte[] pdfBytes = invoiceCreator.generateInvoice(payment, reservation, user);
-                String attachmentName = "Factura_UBIK_" + payment.id() + ".pdf";
-                
-                String message = "<h2>¡Gracias por tu pago en UBIK!</h2>" +
-                                 "<p>Tu reserva ha sido confirmada exitosamente.</p>" +
-                                 "<p>Adjuntamos la factura de tu pago.</p>";
+            String servicesDetail = String.format("Reserva Habitación #%d\nDel: %s\nAl: %s",
+                    res.roomId(), res.checkInDate(), res.checkOutDate());
 
-                return notificationClient.sendEmailWithAttachment(
-                        user.email(),
-                        "Confirmación de Pago - UBIK",
-                        message,
-                        pdfBytes,
-                        attachmentName
-                );
-            } catch (Exception e) {
-                log.error("Error al generar o enviar la factura para el pago {}: {}", payment.id(), e.getMessage());
-                return Mono.empty();
-            }
+            byte[] pdf = invoiceCreator.generateInvoice(
+                    payment.id().toString(),
+                    user.username(),
+                    user.email(),
+                    user.phoneNumber(),
+                    servicesDetail,
+                    payment.amountCents() / 100.0
+            );
+
+            String subject = "Factura de Compra - Reserva #" + payment.reservationId();
+            String msg = "<p>Hola " + user.username() + ",</p><p>Adjunto encontrarás la factura de tu reserva.</p><p>¡Gracias por elegir UBIK!</p>";
+
+            return notificationAdapter.sendInvoiceEmail(user.email(), subject, msg, pdf, "Factura_" + payment.id() + ".pdf");
+        }).onErrorResume(e -> {
+            log.error("Error generando o enviando la factura para el pago {}: {}", payment.id(), e.getMessage());
+            return Mono.empty();
         });
     }
 

@@ -14,6 +14,10 @@ public class NotificationRequest {
     @NotBlank
     private String message;
 
+    private byte[] attachment;
+    
+    private String attachmentName;
+
     public NotificationRequest() {
     }
 
@@ -21,6 +25,14 @@ public class NotificationRequest {
         this.to = to;
         this.subject = subject;
         this.message = message;
+    }
+
+    public NotificationRequest(String to, String subject, String message, byte[] attachment, String attachmentName) {
+        this.to = to;
+        this.subject = subject;
+        this.message = message;
+        this.attachment = attachment;
+        this.attachmentName = attachmentName;
     }
 
     public String getTo() {
@@ -47,6 +59,7 @@ public class NotificationRequest {
         this.message = message;
     }
 
+<<<<<<< HEAD
     private byte[] attachment;
     private String attachmentName;
 
@@ -55,4 +68,21 @@ public class NotificationRequest {
 
     public String getAttachmentName() { return attachmentName; }
     public void setAttachmentName(String attachmentName) { this.attachmentName = attachmentName; }
+=======
+    public byte[] getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(byte[] attachment) {
+        this.attachment = attachment;
+    }
+
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+
+    public void setAttachmentName(String attachmentName) {
+        this.attachmentName = attachmentName;
+    }
+>>>>>>> Stripe-payment
 }
