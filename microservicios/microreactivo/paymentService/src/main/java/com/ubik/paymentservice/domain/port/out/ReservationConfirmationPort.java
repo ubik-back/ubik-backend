@@ -17,4 +17,9 @@ public interface ReservationConfirmationPort {
      * @return Mono vacío cuando la confirmación es aceptada
      */
     Mono<Void> confirmReservation(Long reservationId);
+
+    /**
+     * Obtiene los detalles de la reserva.
+     */
+    Mono<com.ubik.paymentservice.infrastructure.adapter.out.motelmanagement.dto.ReservationDto> getReservation(Long reservationId);
 }

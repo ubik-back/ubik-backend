@@ -51,6 +51,11 @@ public class NotificationService {
             // 👇 AQUÍ ESTÁ LA CLAVE
             helper.setText(dto.getMessage(), true); // true = HTML
 
+            if (dto.getAttachment() != null && dto.getAttachmentName() != null) {
+                org.springframework.core.io.ByteArrayResource arrayResource = new org.springframework.core.io.ByteArrayResource(dto.getAttachment());
+                helper.addAttachment(dto.getAttachmentName(), arrayResource);
+            }
+
             helper.setFrom("ubikApp3@gmail.com");
 
             mailSender.send(mimeMessage);

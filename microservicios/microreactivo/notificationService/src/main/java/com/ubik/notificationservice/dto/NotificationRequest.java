@@ -46,4 +46,13 @@ public class NotificationRequest {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    private byte[] attachment;
+    private String attachmentName;
+
+    public byte[] getAttachment() { return attachment; }
+    public void setAttachment(byte[] attachment) { this.attachment = attachment; }
+
+    public String getAttachmentName() { return attachmentName; }
+    public void setAttachmentName(String attachmentName) { this.attachmentName = attachmentName; }
 }

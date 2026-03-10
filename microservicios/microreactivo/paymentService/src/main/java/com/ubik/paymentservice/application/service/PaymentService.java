@@ -6,7 +6,9 @@ import com.ubik.paymentservice.domain.port.in.PaymentUseCasePort;
 import com.ubik.paymentservice.domain.port.out.PaymentRepositoryPort;
 import com.ubik.paymentservice.domain.port.out.ReservationConfirmationPort;
 import com.ubik.paymentservice.domain.port.out.StripePort;
+import com.ubik.paymentservice.domain.port.out.UserManagementPort;
 import com.ubik.paymentservice.infrastructure.adapter.in.web.dto.CreatePaymentResponse;
+import com.ubik.paymentservice.infrastructure.adapter.out.notificationservice.NotificationClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -24,15 +26,24 @@ public class PaymentService implements PaymentUseCasePort {
     private final StripePort stripePort;
     private final PaymentRepositoryPort paymentRepository;
     private final ReservationConfirmationPort reservationConfirmationPort;
+    private final UserManagementPort userManagementPort;
+    private final NotificationClient notificationClient;
+    private final InvoiceCreator invoiceCreator;
 
     public PaymentService(
             StripePort stripePort,
             PaymentRepositoryPort paymentRepository,
-            ReservationConfirmationPort reservationConfirmationPort
+            ReservationConfirmationPort reservationConfirmationPort,
+            UserManagementPort userManagementPort,
+            NotificationClient notificationClient,
+            InvoiceCreator invoiceCreator
     ) {
         this.stripePort = stripePort;
         this.paymentRepository = paymentRepository;
         this.reservationConfirmationPort = reservationConfirmationPort;
+        this.userManagementPort = userManagementPort;
+        this.notificationClient = notificationClient;
+        this.invoiceCreator = invoiceCreator;
     }
 
     @Override
@@ -107,16 +118,50 @@ public class PaymentService implements PaymentUseCasePort {
                             .flatMap(payment -> {
                                 log.info("Pago {} actualizado a SUCCEEDED. Confirmando reserva {}",
                                         payment.id(), payment.reservationId());
+                                
                                 return reservationConfirmationPort.confirmReservation(payment.reservationId())
+                                        .then(generateAndSendInvoice(payment))
                                         .onErrorResume(e -> {
-                                            // No fallar el webhook si la confirmación falla —
+                                            // No fallar el webhook si la confirmación o factura fallan —
                                             // el pago ya está registrado como exitoso
-                                            log.error("Error confirmando reserva {}: {}",
+                                            log.error("Error post-pago (confirmación/factura) para reserva {}: {}",
                                                     payment.reservationId(), e.getMessage());
                                             return Mono.empty();
                                         });
                             });
                 });
+    }
+
+    private Mono<Void> generateAndSendInvoice(Payment payment) {
+        log.info("Generando factura para el pago: {}", payment.id());
+
+        return Mono.zip(
+                reservationConfirmationPort.getReservation(payment.reservationId()),
+                userManagementPort.getUserProfile(payment.userId())
+        ).flatMap(tuple -> {
+            var reservation = tuple.getT1();
+            var user = tuple.getT2();
+
+            try {
+                byte[] pdfBytes = invoiceCreator.generateInvoice(payment, reservation, user);
+                String attachmentName = "Factura_UBIK_" + payment.id() + ".pdf";
+                
+                String message = "<h2>¡Gracias por tu pago en UBIK!</h2>" +
+                                 "<p>Tu reserva ha sido confirmada exitosamente.</p>" +
+                                 "<p>Adjuntamos la factura de tu pago.</p>";
+
+                return notificationClient.sendEmailWithAttachment(
+                        user.email(),
+                        "Confirmación de Pago - UBIK",
+                        message,
+                        pdfBytes,
+                        attachmentName
+                );
+            } catch (Exception e) {
+                log.error("Error al generar o enviar la factura para el pago {}: {}", payment.id(), e.getMessage());
+                return Mono.empty();
+            }
+        });
     }
 
     private Mono<Void> handlePaymentFailed(String payload) {
