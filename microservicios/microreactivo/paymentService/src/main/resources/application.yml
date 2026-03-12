@@ -33,21 +33,16 @@ services:
   notification-service:
     url: ${NOTIFICATION_SERVICE_URL:http://notification-service:8084}
 
-# ── Actuator ──────────────────────────────────────────────────────────────────
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: always
-
-# ── Logging ───────────────────────────────────────────────────────────────────
+# Logging
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
   level:
+    root: INFO
     com.ubik.paymentservice: DEBUG
+    com.example: DEBUG
 
+# CONFIGURACIÓN DE OBSERVABILIDAD (Actuator + Micrometer)
 management:
   endpoints:
     web:
@@ -76,9 +71,3 @@ management:
         http.server.requests: 0.5, 0.75, 0.95, 0.99
       slo:
         http.server.requests: 100ms, 500ms, 1s, 2s
-logging:
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
-  level:
-    root: INFO
-    com.example: DEBUG

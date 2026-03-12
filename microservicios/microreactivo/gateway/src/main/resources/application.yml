@@ -123,18 +123,18 @@ jwt:
 
 # Logging
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
   level:
+    root: INFO
     com.example.gateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
     org.springframework.security: DEBUG
+    com.example: DEBUG
 
 # ============================================================
-# CONFIGURACIÓN application.yml — Agregar en cada microservicio
+# CONFIGURACIÓN DE OBSERVABILIDAD (Actuator + Micrometer)
 # ============================================================
-# Pega este bloque en el application.yml (o application-docker.yml)
-# de cada microservicio para exponer las métricas a Prometheus.
-# ============================================================
-
 management:
   endpoints:
     web:
@@ -162,9 +162,3 @@ management:
         http.server.requests: 0.5, 0.75, 0.95, 0.99
       slo:
         http.server.requests: 100ms, 500ms, 1s, 2s
-logging:
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
-  level:
-    root: INFO
-    com.example: DEBUG

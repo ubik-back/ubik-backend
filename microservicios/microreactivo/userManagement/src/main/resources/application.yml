@@ -23,29 +23,18 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
-# CONFIGURACIÓN DE ACTUATOR
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
-  health:
-    r2dbc:
-      enabled: true
-
 # Logging
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
   level:
+    root: INFO
     com.ubik.usermanagement: DEBUG
     org.springframework.r2dbc: INFO
     io.r2dbc.postgresql: INFO
+    com.example: DEBUG
 
+# CONFIGURACIÓN DE OBSERVABILIDAD (Actuator + Micrometer)
 management:
   endpoints:
     web:
@@ -56,8 +45,11 @@ management:
     health:
       show-details: always
       probes:
-        enabled: true   # Habilita /actuator/health/liveness y /readiness
+        enabled: true
     prometheus:
+      enabled: true
+  health:
+    r2dbc:
       enabled: true
   metrics:
     export:
@@ -73,9 +65,3 @@ management:
         http.server.requests: 0.5, 0.75, 0.95, 0.99
       slo:
         http.server.requests: 100ms, 500ms, 1s, 2s
-logging:
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n"
-  level:
-    root: INFO
-    com.example: DEBUG

@@ -1,8 +1,10 @@
 FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 WORKDIR /app
 COPY . .
-ENV MAVEN_OPTS="-Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
-RUN mvn clean package -pl paymentService -am -DskipTests
+# Actualizar certificados (frecuente problema en Alpine)
+RUN apk update && apk add --no-cache ca-certificates
+
+RUN mvn clean package -pl paymentService -am -DskipTests -ntp
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
