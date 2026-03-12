@@ -162,4 +162,5 @@ services:
 # ===========================================
 networks:
   ubik-network:
+    name: ubik-network
     driver: bridge

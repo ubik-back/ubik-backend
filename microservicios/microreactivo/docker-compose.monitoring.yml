@@ -124,4 +124,5 @@ volumes:
 
 networks:
   ubik-network:
+    name: ubik-network
     external: true
