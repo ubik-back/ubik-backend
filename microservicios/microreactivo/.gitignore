@@ -1,4 +1,5 @@
 .env
+full_config.yml
 target/
 
 
