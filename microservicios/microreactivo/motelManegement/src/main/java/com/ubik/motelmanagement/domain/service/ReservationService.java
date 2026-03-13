@@ -8,6 +8,8 @@ import com.ubik.motelmanagement.domain.port.out.RoomRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.UserPort;
 import com.ubik.motelmanagement.infrastructure.client.NotificationClient;
 import com.ubik.motelmanagement.infrastructure.service.ConfirmationCodeService;
+import com.ubik.motelmanagement.domain.exception.NotFoundException;
+import com.ubik.motelmanagement.domain.exception.RoomNotAvailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -76,7 +78,7 @@ public class ReservationService implements ReservationUseCasePort {
                             .then(roomRepositoryPort.existsById(reservation.roomId()))
                             .flatMap(roomExists -> {
                                 if (!roomExists) {
-                                    return Mono.error(new RuntimeException(
+                                    return Mono.error(new NotFoundException(
                                             "Habitación no encontrada con ID: " + reservation.roomId()));
                                 }
                                 return isRoomAvailable(
@@ -87,7 +89,7 @@ public class ReservationService implements ReservationUseCasePort {
                             })
                             .flatMap(isAvailable -> {
                                 if (!isAvailable) {
-                                    return Mono.error(new IllegalArgumentException(
+                                    return Mono.error(new RoomNotAvailableException(
                                             "La habitación no está disponible para las fechas seleccionadas"));
                                 }
 
@@ -138,7 +140,7 @@ public class ReservationService implements ReservationUseCasePort {
     @Override
     public Mono<Reservation> getReservationById(Long id) {
         return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)));
+                .switchIfEmpty(Mono.error(new NotFoundException("Reserva no encontrada con ID: " + id)));
     }
 
     @Override
@@ -177,7 +179,7 @@ public class ReservationService implements ReservationUseCasePort {
     @Override
     public Mono<Reservation> updateReservation(Long id, Reservation reservation) {
         return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+                .switchIfEmpty(Mono.error(new NotFoundException("Reserva no encontrada con ID: " + id)))
                 .flatMap(existingReservation -> {
                     if (!existingReservation.canBeCancelled()) {
                         return Mono.error(new IllegalArgumentException(
@@ -194,7 +196,7 @@ public class ReservationService implements ReservationUseCasePort {
                                 reservation.checkOutDate())
                                 .flatMap(isAvailable -> {
                                     if (!isAvailable) {
-                                        return Mono.error(new IllegalArgumentException(
+                                        return Mono.error(new RoomNotAvailableException(
                                                 "La habitación no está disponible para las nuevas fechas"));
                                     }
                                     Reservation updatedReservation = new Reservation(
@@ -236,7 +238,7 @@ public class ReservationService implements ReservationUseCasePort {
     @Override
     public Mono<Reservation> confirmReservation(Long id) {
         return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+                .switchIfEmpty(Mono.error(new NotFoundException("Reserva no encontrada con ID: " + id)))
                 .flatMap(reservation -> {
                     if (!reservation.canBeConfirmed()) {
                         return Mono.error(new IllegalArgumentException(
@@ -251,7 +253,7 @@ public class ReservationService implements ReservationUseCasePort {
     @Override
     public Mono<Reservation> cancelReservation(Long id) {
         return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+                .switchIfEmpty(Mono.error(new NotFoundException("Reserva no encontrada con ID: " + id)))
                 .flatMap(reservation -> {
                     if (!reservation.canBeCancelled()) {
                         return Mono.error(new IllegalArgumentException(
@@ -266,7 +268,7 @@ public class ReservationService implements ReservationUseCasePort {
     @Override
     public Mono<Reservation> checkIn(Long id) {
         return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+                .switchIfEmpty(Mono.error(new NotFoundException("Reserva no encontrada con ID: " + id)))
                 .flatMap(reservation -> {
                     if (!reservation.canCheckIn()) {
                         return Mono.error(new IllegalArgumentException(
@@ -281,7 +283,7 @@ public class ReservationService implements ReservationUseCasePort {
     @Override
     public Mono<Reservation> checkOut(Long id) {
         return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+                .switchIfEmpty(Mono.error(new NotFoundException("Reserva no encontrada con ID: " + id)))
                 .flatMap(reservation -> {
                     if (!reservation.canCheckOut()) {
                         return Mono.error(new IllegalArgumentException(
@@ -296,7 +298,7 @@ public class ReservationService implements ReservationUseCasePort {
     @Override
     public Mono<Void> deleteReservation(Long id) {
         return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+                .switchIfEmpty(Mono.error(new NotFoundException("Reserva no encontrada con ID: " + id)))
                 .flatMap(reservation -> {
                     if (reservation.status() != Reservation.ReservationStatus.CANCELLED) {
                         return Mono.error(new IllegalArgumentException(

@@ -1,0 +1,649 @@
+﻿
+UBIK
+Plan de IntegraciÃ³n de Tests
+GuÃ­a de ImplementaciÃ³n para Agente de Desarrollo
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+Proyecto
+Ubik â€” Motel Management Platform
+Stack
+Spring WebFlux Â· Hexagonal Arch Â· R2DBC Â· PostgreSQL
+VersiÃ³n
+1.0 â€” Marzo 2026
+Destinatario
+Agente de desarrollo â€” Lectura tÃ©cnica directa
+
+Este documento es una especificaciÃ³n ejecutable. Cada secciÃ³n contiene instrucciones precisas, cÃ³digo listo para copiar y criterios de aceptaciÃ³n verificables. El agente debe seguir el plan en orden.
+
+0. 
+Resumen Ejecutivo
+QuÃ© se construye, por quÃ© y en cuÃ¡nto tiempo
+El proyecto Ubik adopta una estrategia de testing en tres niveles que cubre desde la lÃ³gica de negocio pura hasta la integraciÃ³n con la base de datos real. El objetivo es garantizar la correctitud de las reglas de dominio crÃ­ticas (reservas, aprobaciÃ³n de moteles, cÃ³digos de confirmaciÃ³n) sin introducir dependencias frÃ¡giles ni tests lentos en el ciclo de CI.
+
+Nivel
+Nombre
+Herramientas
+Velocidad
+Cobertura objetivo
+1
+Unit Tests â€” Dominio
+JUnit 5 + Mockito + StepVerifier
+< 50 ms / test
+~18 tests
+2
+API Tests â€” Controladores HTTP
+@WebFluxTest + @MockBean
+< 2 s / clase
+~11 tests
+3
+Repository Tests â€” Base de datos
+@DataR2dbcTest + Testcontainers
+< 30 s / clase
+~5 tests
+
+â„¹  El agente debe implementar los niveles en este orden. El Nivel 1 es prerequisito del Nivel 2, y el Nivel 2 es prerequisito del Nivel 3 desde el punto de vista de comprensiÃ³n del dominio.
+
+Cronograma de 3 semanas
+Semana
+Foco
+Clases a testear
+Entregable
+Semana 1
+Unit Tests â€” Servicios de dominio
+ReservationService, MotelService, RoomService, UserService
+18 unit tests pasando en CI
+Semana 2
+API Tests â€” Controladores HTTP
+AdminMotelController, ReservationController, AuthController
+11 API tests pasando en CI
+Semana 3
+Repository Tests â€” Queries custom
+ReservationCounterRepository, ReservationR2dbcRepository
+5 integration tests pasando en CI
+1. 
+Dependencias y ConfiguraciÃ³n
+Todo lo que debe estar en pom.xml antes de escribir el primer test
+1.1 Dependencias Maven
+Agregar al pom.xml del microservicio correspondiente. Todas van con scope test salvo reactor-test que ya deberÃ­a existir como dependencia de spring-boot-starter-webflux.
+
+Nivel 1 y 2 â€” Ya incluidas en spring-boot-starter-test
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+    <!-- Incluye: JUnit 5, Mockito, AssertJ, Spring Test -->
+</dependency>
+ 
+<!-- reactor-test: StepVerifier para Mono/Flux -->
+<dependency>
+    <groupId>io.projectreactor</groupId>
+    <artifactId>reactor-test</artifactId>
+    <scope>test</scope>
+</dependency>
+
+Nivel 3 â€” Testcontainers (agregar explÃ­citamente)
+<!-- BOM de Testcontainers â€” agregar en <dependencyManagement> -->
+<dependency>
+    <groupId>org.testcontainers</groupId>
+    <artifactId>testcontainers-bom</artifactId>
+    <version>1.19.7</version>
+    <type>pom</type>
+    <scope>import</scope>
+</dependency>
+ 
+<!-- MÃ³dulo PostgreSQL -->
+<dependency>
+    <groupId>org.testcontainers</groupId>
+    <artifactId>postgresql</artifactId>
+    <scope>test</scope>
+</dependency>
+ 
+<!-- MÃ³dulo R2DBC para Testcontainers -->
+<dependency>
+    <groupId>org.testcontainers</groupId>
+    <artifactId>r2dbc</artifactId>
+    <scope>test</scope>
+</dependency>
+
+â„¹  CRÃTICO: No usar H2 como base de datos de tests. Ubik usa ON CONFLICT, RETURNING y EXISTS de PostgreSQL que no son compatibles con H2. Testcontainers levanta un PostgreSQL real en Docker, que es el Ãºnico enfoque correcto.
+
+1.2 Estructura de directorios
+La estructura de archivos de test debe seguir la misma jerarquÃ­a de paquetes que el cÃ³digo principal. Esto es convenciÃ³n de Maven y permite que Spring Boot auto-detecte las clases de test.
+
+src/
+â”œâ”€â”€ main/java/com/ubik/<servicio>/
+â”‚   â”œâ”€â”€ application/service/        â† AquÃ­ viven los servicios a testear
+â”‚   â”œâ”€â”€ infrastructure/adapter/in/web/   â† AquÃ­ viven los controladores
+â”‚   â””â”€â”€ infrastructure/adapter/out/persistence/ â† AquÃ­ los repositorios
+â”‚
+â””â”€â”€ test/java/com/ubik/<servicio>/
+    â”œâ”€â”€ application/service/         â† Unit tests (Nivel 1)
+    â”‚   â”œâ”€â”€ MotelServiceTest.java
+    â”‚   â”œâ”€â”€ ReservationServiceTest.java
+    â”‚   â”œâ”€â”€ RoomServiceTest.java
+    â”‚   â””â”€â”€ UserServiceTest.java
+    â”œâ”€â”€ infrastructure/adapter/in/web/ â† API tests (Nivel 2)
+    â”‚   â”œâ”€â”€ AdminMotelControllerTest.java
+    â”‚   â”œâ”€â”€ ReservationControllerTest.java
+    â”‚   â””â”€â”€ AuthControllerTest.java
+    â””â”€â”€ infrastructure/adapter/out/persistence/ â† Repo tests (Nivel 3)
+        â”œâ”€â”€ ReservationCounterRepositoryTest.java
+        â””â”€â”€ ReservationR2dbcRepositoryTest.java
+2. 
+Nivel 1 â€” Unit Tests
+LÃ³gica de negocio pura sin Spring, sin base de datos, sin red
+2.1 PatrÃ³n base y anotaciones
+Todos los unit tests del Nivel 1 siguen el mismo patrÃ³n. El agente debe usar EXACTAMENTE estas anotaciones y NO usar @SpringBootTest, que levanta el contexto completo y hace los tests 50x mÃ¡s lentos.
+
+@ExtendWith(MockitoExtension.class)   // â† ÃšNICA anotaciÃ³n necesaria
+class MotelServiceTest {
+ 
+    @Mock                              // Mockito crea el doble de prueba
+    MotelRepositoryPort motelRepositoryPort;
+ 
+    @InjectMocks                       // Mockito inyecta los @Mock en el constructor
+    MotelService motelService;         // â† La clase real que estamos testeando
+ 
+    @Test
+    void nombreDelTest_condicion_resultadoEsperado() {
+        // ARRANGE â€” preparar el escenario
+        when(motelRepositoryPort.findById(99L)).thenReturn(Mono.empty());
+ 
+        // ACT + ASSERT â€” ejecutar y verificar con StepVerifier
+        StepVerifier.create(motelService.getMotelById(99L))
+            .expectErrorMatches(e ->
+                e instanceof NotFoundException &&
+                e.getMessage().contains("99")
+            )
+            .verify();
+    }
+}
+
+â„¹  Regla de nomenclatura de tests: metodoBajoTest_condicionDePrueba_resultadoEsperado. Ejemplo: getMotelById_whenIdNotFound_shouldReturnNotFoundException. Esta convenciÃ³n hace los reportes de CI autoexplicativos.
+
+2.2 MotelService â€” Tests requeridos
+MÃ©todo a testear
+CondiciÃ³n del test
+Comportamiento esperado
+createMotel()
+name es blank o null
+Mono.error(IllegalArgumentException)
+createMotel()
+propertyId no existe en repo
+Mono.error(NotFoundException)
+getMotelById()
+id no existe en repositorio
+Mono.error con mensaje que contiene el id buscado
+approveMotel()
+RUC o razÃ³n social faltante
+Mono.error(BusinessRuleException)
+approveMotel()
+caso feliz â€” datos completos
+Mono emite motel con status APPROVED
+
+CÃ³digo completo â€” MotelServiceTest.java
+@ExtendWith(MockitoExtension.class)
+class MotelServiceTest {
+ 
+    @Mock MotelRepositoryPort motelRepositoryPort;
+    @Mock PropertyRepositoryPort propertyRepositoryPort;
+    @InjectMocks MotelService motelService;
+ 
+    // â”€â”€â”€ Test 1 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    @Test
+    void createMotel_whenNameIsBlank_shouldReturnIllegalArgumentException() {
+        MotelCreateRequest request = new MotelCreateRequest("", 1L, "Descripcion");
+ 
+        StepVerifier.create(motelService.createMotel(request))
+            .expectErrorMatches(e -> e instanceof IllegalArgumentException)
+            .verify();
+ 
+        // Verificar que NUNCA se consultÃ³ el repo (fail-fast)
+        verify(motelRepositoryPort, never()).save(any());
+    }
+ 
+    // â”€â”€â”€ Test 2 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    @Test
+    void getMotelById_whenNotFound_shouldReturnErrorWithId() {
+        when(motelRepositoryPort.findById(99L)).thenReturn(Mono.empty());
+ 
+        StepVerifier.create(motelService.getMotelById(99L))
+            .expectErrorMatches(e ->
+                e.getMessage().contains("99"))
+            .verify();
+    }
+ 
+    // â”€â”€â”€ Test 3 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    @Test
+    void approveMotel_whenLegalInfoComplete_shouldReturnApprovedMotel() {
+        Motel motel = Motel.builder()
+            .id(1L).name("Hotel Test")
+            .ruc("20123456789").legalName("Test SAC")
+            .status(MotelStatus.PENDING).build();
+ 
+        when(motelRepositoryPort.findById(1L)).thenReturn(Mono.just(motel));
+        when(motelRepositoryPort.save(any())).thenAnswer(inv -> Mono.just(inv.getArgument(0)));
+ 
+        StepVerifier.create(motelService.approveMotel(1L))
+            .expectNextMatches(m -> m.getStatus() == MotelStatus.APPROVED)
+            .verifyComplete();
+    }
+}
+
+2.3 ReservationService â€” Tests requeridos (PRIORIDAD MÃXIMA)
+â„¹  ReservationService es el servicio mÃ¡s complejo del sistema. Debe testearse PRIMERO en la Semana 1.
+
+MÃ©todo a testear
+CondiciÃ³n del test
+Comportamiento esperado
+createReservation()
+habitaciÃ³n no disponible en el rango de fechas
+Mono.error(RoomNotAvailableException)
+createReservation()
+caso feliz â€” habitaciÃ³n disponible
+Mono emite reserva con confirmationCode no-null
+cancelReservation()
+reserva en estado CHECKED_IN
+Mono.error(IllegalStateException)
+cancelReservation()
+reserva en estado CONFIRMED
+Mono emite reserva con status CANCELLED
+createReservation()
+fallo al enviar notificaciÃ³n (simulado)
+Reserva SE GUARDA igual â€” notificaciÃ³n no es bloqueante
+
+Test crÃ­tico â€” notificaciÃ³n no bloqueante
+Este test verifica uno de los contratos mÃ¡s importantes del sistema: que un fallo en el servicio de notificaciones no deshaga una reserva ya creada. El servicio debe usar onErrorResume para absorber el error.
+
+@Test
+void createReservation_whenNotificationFails_shouldStillSaveReservation() {
+    // Configurar room disponible
+    when(reservationRepository.findConflictingReservations(any(), any(), any()))
+        .thenReturn(Flux.empty()); // sin conflictos
+ 
+    // Configurar notificaciÃ³n que FALLA
+    when(notificationPort.sendConfirmation(any()))
+        .thenReturn(Mono.error(new RuntimeException("SMTP down")));
+ 
+    when(reservationRepository.save(any()))
+        .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
+ 
+    StepVerifier.create(reservationService.createReservation(validRequest()))
+        .expectNextCount(1)   // â† La reserva SÃ se emite
+        .verifyComplete();    // â† Sin error propagado
+ 
+    // La reserva fue guardada exactamente una vez
+    verify(reservationRepository, times(1)).save(any());
+}
+
+2.4 RoomService â€” Tests requeridos
+MÃ©todo
+CondiciÃ³n
+Resultado esperado
+createRoom()
+motelId no existe
+Mono.error(NotFoundException)
+updateRoom()
+intento de cambiar motelId
+motelId original se preserva (no se acepta el cambio)
+addServiceToRoom()
+relaciÃ³n room-service ya existe
+Mono.error(DuplicateRelationException)
+
+2.5 UserService â€” Tests requeridos
+MÃ©todo
+CondiciÃ³n
+Resultado esperado
+registerUser()
+username ya existe en base de datos
+Mono.error(DuplicateUsernameException)
+login()
+password incorrecto
+Mono.error(InvalidCredentialsException)
+resetPassword()
+token expirado
+Mono.error(TokenExpiredException)
+3. 
+Nivel 2 â€” API Tests
+Capa HTTP: controladores, headers, routing y serializaciÃ³n
+3.1 PatrÃ³n base â€” @WebFluxTest
+Los API tests usan @WebFluxTest que carga SOLO la capa web de Spring (controladores, filtros, serializaciÃ³n). No levanta R2DBC ni repositorios. Todos los puertos de caso de uso se mockean con @MockBean.
+
+@WebFluxTest(AdminMotelController.class)  // â† Solo carga este controlador
+class AdminMotelControllerTest {
+ 
+    @Autowired
+    WebTestClient webTestClient;          // â† Cliente HTTP reactivo de Spring Test
+ 
+    @MockBean
+    MotelUseCasePort motelUseCasePort;    // â† Mock del caso de uso (no el repo)
+ 
+    @MockBean
+    MotelDtoMapper motelDtoMapper;        // â† Mock del mapper si existe
+ 
+    @Test
+    void approve_whenRoleIsAdmin_shouldReturn200() {
+        when(motelUseCasePort.approveMotel(1L))
+            .thenReturn(Mono.just(motelAprobado()));
+ 
+        webTestClient.post()
+            .uri("/api/admin/motels/1/approve")
+            .header("X-User-Role", "ADMIN")
+            .header("X-User-Username", "admin")
+            .header("X-User-Id", "1")
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(MotelResponse.class)
+            .consumeWith(r -> assertThat(r.getResponseBody().getStatus())
+                .isEqualTo("APPROVED"));
+    }
+}
+
+â„¹  El API Gateway de Ubik reemplaza el JWT por headers X-User-Id, X-User-Username y X-User-Role. Los microservicios leen estos headers directamente. Los API tests deben verificar que headers faltantes o roles incorrectos sean rechazados ANTES de llamar al servicio.
+
+3.2 AdminMotelController â€” Tests requeridos
+Endpoint
+CondiciÃ³n del test
+Status HTTP
+VerificaciÃ³n adicional
+POST /approve
+X-User-Role = ADMIN, datos vÃ¡lidos
+200 OK
+Body contiene status: APPROVED
+POST /approve
+X-User-Role = PROPERTY_OWNER (rol incorrecto)
+403 Forbidden
+Servicio NUNCA es llamado
+POST /reject
+X-User-Role = ADMIN, datos vÃ¡lidos
+200 OK
+Body contiene status: REJECTED
+POST /approve
+Header X-User-Role AUSENTE
+400 o 403
+Documenta el contrato del gateway
+
+Test crÃ­tico â€” verificar que el servicio no se llama con rol incorrecto
+@Test
+void approve_whenRoleIsNotAdmin_shouldReturn403AndNeverCallService() {
+    webTestClient.post()
+        .uri("/api/admin/motels/1/approve")
+        .header("X-User-Role", "PROPERTY_OWNER")
+        .header("X-User-Username", "owner1")
+        .header("X-User-Id", "5")
+        .exchange()
+        .expectStatus().isForbidden();
+ 
+    // CRÃTICO: verificar que el caso de uso nunca fue invocado
+    verify(motelUseCasePort, never()).approveMotel(anyLong());
+}
+
+3.3 ReservationController â€” Tests requeridos
+Endpoint
+CondiciÃ³n
+Status HTTP
+QuÃ© verificar
+POST /reservations
+X-User-Username presente, habitaciÃ³n disponible
+201 Created
+Body con confirmationCode
+POST /reservations
+Header X-User-Username AUSENTE
+400 Bad Request
+Servicio nunca llamado
+DELETE /reservations/{id}
+Reserva en CONFIRMED â€” usuario es el dueÃ±o
+200 OK
+Status = CANCELLED
+DELETE /reservations/{id}
+Reserva en CHECKED_IN
+422 Unprocessable
+Mensaje de error descriptivo
+
+3.4 AuthController â€” Tests requeridos
+Endpoint
+CondiciÃ³n
+Status HTTP
+Body esperado
+POST /auth/register
+Username ya existe en sistema
+400 Bad Request
+{ error: "Username already taken" }
+POST /auth/login
+Credenciales incorrectas
+400 Bad Request
+{ error: "Invalid credentials" }
+POST /auth/login
+Credenciales correctas
+200 OK
+Body contiene campo token no-null
+4. 
+Nivel 3 â€” Repository Tests
+IntegraciÃ³n real con PostgreSQL usando Testcontainers + @DataR2dbcTest
+4.1 PatrÃ³n base â€” @DataR2dbcTest + Testcontainers
+Los repository tests usan @DataR2dbcTest que carga SOLO la capa de persistencia. Testcontainers levanta un contenedor Docker de PostgreSQL real para cada clase de test. Solo se deben testear los mÃ©todos marcados con @Query (queries custom), NO los mÃ©todos derivados de Spring Data (findById, save, etc.) que son responsabilidad del framework.
+
+@DataR2dbcTest              // Solo capa R2DBC â€” sin web, sin servicios
+@Testcontainers             // Activa la gestiÃ³n del ciclo de vida Docker
+class ReservationCounterRepositoryTest {
+ 
+    // Levanta PostgreSQL 15 en Docker â€” se destruye al terminar la clase
+    @Container
+    static PostgreSQLContainer<?> postgres =
+        new PostgreSQLContainer<>("postgres:15")
+            .withInitScript("Postgres-init-motel.sql"); // DDL del schema
+ 
+    // Inyecta la URL R2DBC dinÃ¡mica (el puerto cambia en cada ejecuciÃ³n)
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.r2dbc.url", () ->
+            "r2dbc:postgresql://"
+            + postgres.getHost() + ":"
+            + postgres.getMappedPort(5432) + "/test");
+        registry.add("spring.r2dbc.username", postgres::getUsername);
+        registry.add("spring.r2dbc.password", postgres::getPassword);
+    }
+ 
+    @Autowired
+    ReservationCounterRepository counterRepository;
+ 
+    @BeforeEach
+    void cleanUp() {
+        // Limpiar tabla antes de cada test para evitar contaminaciÃ³n
+        counterRepository.deleteAll().block();
+    }
+}
+
+â„¹  El archivo SQL del script de inicializaciÃ³n (Postgres-init-motel.sql) debe colocarse en src/test/resources/. Debe contener todo el DDL necesario: CREATE TABLE, CREATE SEQUENCE, Ã­ndices y constraints. Si el script falla, el contenedor no arranca y el test falla con un error crÃ­ptico de conexiÃ³n.
+
+4.2 ReservationCounterRepository â€” PRIORIDAD CRÃTICA
+Este repositorio implementa un contador UPSERT atÃ³mico para generar cÃ³digos de confirmaciÃ³n secuenciales por fecha. Es el test mÃ¡s crÃ­tico del sistema porque garantiza que dos reservas en el mismo dÃ­a nunca reciban el mismo cÃ³digo de confirmaciÃ³n, incluso con concurrencia.
+
+Query bajo prueba
+// En ReservationCounterRepository.java
+@Query("""
+    INSERT INTO reservation_counter (counter_date, counter)
+    VALUES (:date, 1)
+    ON CONFLICT (counter_date)
+    DO UPDATE SET counter = reservation_counter.counter + 1
+    RETURNING counter
+""")
+Mono<Integer> incrementAndGet(LocalDate date);
+
+Tests requeridos
+Test
+QuÃ© verifica
+Primera llamada con fecha nueva
+Retorna 1 (INSERT path del UPSERT)
+3 llamadas secuenciales misma fecha
+Retorna 1, 2, 3 en orden â€” atomicidad del UPDATE
+Fechas distintas son independientes
+fecha1 retorna 1, fecha2 retorna 1 (no se mezclan)
+
+CÃ³digo completo
+@Test
+void incrementAndGet_firstCall_shouldReturnOne() {
+    StepVerifier.create(counterRepository.incrementAndGet(LocalDate.of(2026, 1, 15)))
+        .expectNext(1)
+        .verifyComplete();
+}
+ 
+@Test
+void incrementAndGet_threeCalls_shouldIncrementSequentially() {
+    LocalDate date = LocalDate.of(2026, 1, 15);
+ 
+    // flatMapSequential garantiza orden en reactive streams
+    Flux<Integer> calls = Flux.range(0, 3)
+        .flatMapSequential(i -> counterRepository.incrementAndGet(date));
+ 
+    StepVerifier.create(calls)
+        .expectNext(1, 2, 3)
+        .verifyComplete();
+}
+ 
+@Test
+void incrementAndGet_differentDates_shouldCountIndependently() {
+    LocalDate date1 = LocalDate.of(2026, 1, 15);
+    LocalDate date2 = LocalDate.of(2026, 1, 16);
+ 
+    counterRepository.incrementAndGet(date1).block();
+    counterRepository.incrementAndGet(date1).block();
+ 
+    StepVerifier.create(counterRepository.incrementAndGet(date2))
+        .expectNext(1) // â† date2 empieza desde 0, no continÃºa date1
+        .verifyComplete();
+}
+
+4.3 ReservationR2dbcRepository â€” findConflictingReservations
+Este es el test mÃ¡s valioso del Nivel 3. La lÃ³gica de detecciÃ³n de solapamiento de fechas tiene tres casos lÃ­mite que deben verificarse explÃ­citamente. Un error aquÃ­ permitirÃ­a reservas duplicadas.
+
+Query bajo prueba
+// En ReservationR2dbcRepository.java
+@Query("""
+    SELECT * FROM reservations
+    WHERE room_id = :roomId
+      AND status NOT IN ('CANCELLED', 'REJECTED')
+      AND (check_in_date < :checkOut AND check_out_date > :checkIn)
+""")
+Flux<ReservationEntity> findConflictingReservations(
+    Long roomId, LocalDate checkIn, LocalDate checkOut);
+
+Los 3 casos de solapamiento a cubrir
+Caso
+Reserva existente
+Nueva solicitud
+Resultado
+1 â€” Inicio dentro del rango
+10 ene â†’ 15 ene
+12 ene â†’ 18 ene
+CONFLICTO âœ—
+2 â€” Fin dentro del rango
+10 ene â†’ 15 ene
+7 ene â†’ 12 ene
+CONFLICTO âœ—
+3 â€” Nueva contiene a existente
+10 ene â†’ 15 ene
+8 ene â†’ 17 ene
+CONFLICTO âœ—
+4 â€” Sin solapamiento (control)
+10 ene â†’ 15 ene
+15 ene â†’ 20 ene
+SIN CONFLICTO âœ“
+5 â€” CANCELLED ignorado (control)
+10 ene â†’ 15 ene (CANCELLED)
+12 ene â†’ 14 ene
+SIN CONFLICTO âœ“
+
+CÃ³digo del test de solapamiento
+@Test
+void findConflictingReservations_whenNewStartsInsideExisting_shouldReturnConflict() {
+    // Crear habitaciÃ³n y reserva existente en BD (via repository.save)
+    ReservationEntity existing = ReservationEntity.builder()
+        .roomId(1L).checkInDate(LocalDate.of(2026, 1, 10))
+        .checkOutDate(LocalDate.of(2026, 1, 15))
+        .status(ReservationStatus.CONFIRMED).build();
+    reservationRepository.save(existing).block();
+ 
+    // Nueva solicitud que empieza DENTRO del rango existente
+    StepVerifier.create(
+        reservationRepository.findConflictingReservations(
+            1L,
+            LocalDate.of(2026, 1, 12), // checkIn: dentro del rango
+            LocalDate.of(2026, 1, 18)  // checkOut: despuÃ©s del rango
+        )
+    )
+    .expectNextCount(1)   // â† Debe encontrar el conflicto
+    .verifyComplete();
+}
+ 
+@Test
+void findConflictingReservations_whenExistingIsCancelled_shouldReturnEmpty() {
+    ReservationEntity cancelled = ReservationEntity.builder()
+        .roomId(1L).checkInDate(LocalDate.of(2026, 1, 10))
+        .checkOutDate(LocalDate.of(2026, 1, 15))
+        .status(ReservationStatus.CANCELLED) // â† CANCELADA
+        .build();
+    reservationRepository.save(cancelled).block();
+ 
+    StepVerifier.create(
+        reservationRepository.findConflictingReservations(
+            1L,
+            LocalDate.of(2026, 1, 12),
+            LocalDate.of(2026, 1, 18)
+        )
+    )
+    .verifyComplete(); // â† Flux vacÃ­o â€” reserva cancelada no cuenta
+}
+5. 
+GuÃ­a de DiagnÃ³stico
+QuÃ© hacer cuando un test falla
+5.1 Errores comunes en Nivel 1
+Error / SÃ­ntoma
+Causa probable y soluciÃ³n
+StepVerifier nunca completa (timeout)
+El Mono/Flux nunca se suscribe. Verificar que el servicio no use .block() internamente. Asegurar que todos los mock retornen Mono.just() o Mono.error(), no null.
+NullPointerException en @InjectMocks
+El servicio usa inyecciÃ³n por campo (@Autowired) en lugar de constructor. Mockito solo puede inyectar via constructor. Refactorizar el servicio para usar constructor injection.
+UnnecessaryStubbingException
+Se configurÃ³ un mock que el test no llegÃ³ a usar (el test fallÃ³ antes). Revisar si un test anterior dejÃ³ estado o si el orden de las verificaciones es incorrecto.
+El mock retorna el valor configurado pero el test falla
+El servicio tiene lÃ³gica de transformaciÃ³n (map, flatMap) que el test no anticipÃ³. Usar .expectNextMatches() con lambda en lugar de .expectNext() con valor exacto.
+
+5.2 Errores comunes en Nivel 2
+Error / SÃ­ntoma
+Causa probable y soluciÃ³n
+404 en lugar del status esperado
+El URI en el test no coincide con el mapping del controlador. Verificar @RequestMapping en la clase y @PostMapping/@GetMapping en el mÃ©todo. Incluir context path si aplica.
+ApplicationContext falla al cargar
+Hay un @Bean que requiere una dependencia no mockeada. Agregar @MockBean para cada dependencia que el controlador inyecta (incluyendo mappers, validators, etc.).
+415 Unsupported Media Type
+Falta .contentType(MediaType.APPLICATION_JSON) en el webTestClient. Agregar .header("Content-Type", "application/json") o usar .contentType().
+Body vacÃ­o en respuesta 200
+El mock del caso de uso retorna Mono.empty() en lugar de Mono.just(objeto). Verificar el when() del @MockBean.
+
+5.3 Errores comunes en Nivel 3
+Error / SÃ­ntoma
+Causa probable y soluciÃ³n
+Connection refused al iniciar test
+Docker no estÃ¡ corriendo en la mÃ¡quina de CI. Verificar que el runner tiene Docker daemon activo. En GitHub Actions agregar services: docker o usar la imagen correcta.
+Script SQL falla â€” tabla no existe
+El archivo .sql no estÃ¡ en src/test/resources/ o el nombre en withInitScript() no coincide. El path es relativo al classpath de test.
+Tests se contaminan entre sÃ­
+Falta @BeforeEach con deleteAll() o @Transactional. Agregar @BeforeEach void cleanUp() { repository.deleteAll().block(); } en la clase de test.
+R2DBC URL invÃ¡lida en DynamicPropertySource
+El formato correcto es r2dbc:postgresql://host:port/database. No usar jdbc: ni postgresql:// sin el protocolo r2dbc. El puerto viene de postgres.getMappedPort(5432).
+
+5.4 Checklist de verificaciÃ³n final
+Antes de marcar un test como completo, verificar todos los siguientes puntos:
+
+El test tiene nombre en formato metodo_condicion_resultadoEsperado
+El test usa StepVerifier y NO usa .block() para obtener resultados
+El test verifica el COMPORTAMIENTO (quÃ© emite el stream), no la implementaciÃ³n interna
+Los tests de error verifican el TIPO de excepciÃ³n con expectErrorMatches()
+Los mocks no configurados no retornan null (Mockito retorna Mono.empty() por defecto para Mono â€” verificar esto)
+Cada clase de test tiene @BeforeEach que limpia el estado si usa base de datos
+Los tests de API verifican que el servicio no es llamado cuando la validaciÃ³n falla (verify(..., never()))
+Los tests de repositorio usan Testcontainers con PostgreSQL 15, no H2
+
+â„¹  Cuando todos los tests pasen en CI con maven test, el plan de integraciÃ³n estarÃ¡ completo. Total esperado: 34 tests (18 unit + 11 API + 5 repository).
+
+Plan de IntegraciÃ³n Ubik v1.0 â€” Marzo 2026
