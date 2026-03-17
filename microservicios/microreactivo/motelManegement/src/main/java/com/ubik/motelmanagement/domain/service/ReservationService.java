@@ -12,7 +12,9 @@ import com.ubik.motelmanagement.infrastructure.client.NotificationClient;
 import com.ubik.motelmanagement.infrastructure.service.ConfirmationCodeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -29,8 +31,9 @@ public class ReservationService implements ReservationUseCasePort {
     private final ReservationRepositoryPort reservationRepositoryPort;
     private final RoomRepositoryPort roomRepositoryPort;
     private final ConfirmationCodeService confirmationCodeService;
-    private final NotificationClient notificationClient;
     private final UserPort userPort;
+    private final DatabaseClient databaseClient;
+    private final TransactionalOperator transactionalOperator;
 
     // Bus de eventos para tiempo real
     private final Sinks.Many<Reservation> reservationSink = Sinks.many().multicast().onBackpressureBuffer();
@@ -40,7 +43,10 @@ public class ReservationService implements ReservationUseCasePort {
             ReservationRepositoryPort reservationRepositoryPort,
             RoomRepositoryPort roomRepositoryPort,
             ConfirmationCodeService confirmationCodeService,
-            NotificationClient notificationClient, UserPort userPort
+            NotificationClient notificationClient, 
+            UserPort userPort,
+            DatabaseClient databaseClient,
+            TransactionalOperator transactionalOperator
     ) {
         this.notificationPort = notificationPort;
         this.reservationRepositoryPort = reservationRepositoryPort;
@@ -48,17 +54,16 @@ public class ReservationService implements ReservationUseCasePort {
         this.confirmationCodeService = confirmationCodeService;
         this.notificationClient = notificationClient;
         this.userPort = userPort;
+        this.databaseClient = databaseClient;
+        this.transactionalOperator = transactionalOperator;
     }
 
     @Override
     public Mono<Reservation> createReservation(Reservation reservation) {
         log.info("Creando nueva reserva para habitación {}", reservation.roomId());
 
-        // PASO 1: Generar código único de forma reactiva
-        return confirmationCodeService.generateCode()
-                .doOnNext(code -> log.debug("Código asignado: {}", code))
-
-                // PASO 2: Crear reserva con el código generado
+        return transactionalOperator.transactional(
+            confirmationCodeService.generateCode()
                 .flatMap(confirmationCode -> {
                     Reservation reservationWithCode = new Reservation(
                             null,
@@ -70,48 +75,31 @@ public class ReservationService implements ReservationUseCasePort {
                             reservation.totalPrice(),
                             reservation.specialRequests(),
                             confirmationCode,
-                            LocalDateTime.now(),
-                            LocalDateTime.now()
+                            null, // null para que la BD use DEFAULT ubik_now()
+                            null  // null para que la BD use DEFAULT ubik_now()
                     );
 
-                    // PASO 3: Validaciones de negocio
-                    return validateReservation(reservationWithCode)
+                    return setClientTimeInSession()
+                            .then(validateReservation(reservationWithCode))
                             .then(roomRepositoryPort.existsById(reservation.roomId()))
                             .flatMap(roomExists -> {
                                 if (!roomExists) {
-                                    return Mono.error(new RuntimeException(
-                                            "Habitación no encontrada con ID: " + reservation.roomId()));
+                                    return Mono.error(new RuntimeException("Habitación no encontrada"));
                                 }
-                                return isRoomAvailable(
-                                        reservation.roomId(),
-                                        reservation.checkInDate(),
-                                        reservation.checkOutDate()
-                                );
+                                return isRoomAvailable(reservation.roomId(), reservation.checkInDate(), reservation.checkOutDate());
                             })
                             .flatMap(isAvailable -> {
                                 if (!isAvailable) {
-                                    return Mono.error(new IllegalArgumentException(
-                                            "La habitación no está disponible para las fechas seleccionadas"));
+                                    return Mono.error(new IllegalArgumentException("No disponible"));
                                 }
-
-                                // PASO 4: Guardar en BD
                                 return reservationRepositoryPort.save(reservationWithCode);
                             });
                 })
-                .doOnNext(saved -> {
-                    log.info("Emitiendo evento de nueva reserva: {}", saved.id());
-                    reservationSink.tryEmitNext(saved);
-                })
+                .doOnNext(saved -> reservationSink.tryEmitNext(saved))
                 .flatMap(savedReservation ->
-// ... rest of implementation (omitted for brevity in replace call, but I will provide the full block)
-
                         userPort.getUserById(savedReservation.userId())
-
                                 .flatMap(user -> {
-
-                                    DateTimeFormatter formatter =
-                                            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
+                                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                                     return notificationPort.sendReservationConfirmation(
                                             user.email(),
                                             savedReservation.confirmationCode(),
@@ -121,21 +109,22 @@ public class ReservationService implements ReservationUseCasePort {
                                             String.format("%,.2f", savedReservation.totalPrice())
                                     );
                                 })
-
-                                // No bloquear si falla el email
-                                .onErrorResume(error -> {
-                                    log.error("Error enviando notificación: {}", error.getMessage());
-                                    return Mono.empty();
-                                })
-
+                                .onErrorResume(error -> Mono.empty())
                                 .thenReturn(savedReservation)
                 )
+        );
+    }
 
-
-                // ✅ Manejo de errores
-                .doOnError(error -> {
-                    log.error("Error creando reserva: {}", error.getMessage());
-                });
+    private Mono<Void> setClientTimeInSession() {
+        return Mono.deferContextual(ctx -> {
+            String clientTime = ctx.getOrDefault("X-Client-Time", null);
+            if (clientTime != null && !clientTime.isBlank()) {
+                return databaseClient.sql("SELECT set_config('ubik.client_time', :time, true)")
+                        .bind("time", clientTime)
+                        .then();
+            }
+            return Mono.empty();
+        });
     }
 
     @Override
@@ -179,7 +168,8 @@ public class ReservationService implements ReservationUseCasePort {
 
     @Override
     public Mono<Reservation> updateReservation(Long id, Reservation reservation) {
-        return reservationRepositoryPort.findById(id)
+        return transactionalOperator.transactional(
+            reservationRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
                 .flatMap(existingReservation -> {
                     if (!existingReservation.canBeCancelled()) {
@@ -191,6 +181,24 @@ public class ReservationService implements ReservationUseCasePort {
                     boolean datesChanged = !existingReservation.checkInDate().equals(reservation.checkInDate()) ||
                             !existingReservation.checkOutDate().equals(reservation.checkOutDate());
 
+                    Reservation updatedReservation = new Reservation(
+                            id,
+                            existingReservation.roomId(),
+                            existingReservation.userId(),
+                            reservation.checkInDate(),
+                            reservation.checkOutDate(),
+                            existingReservation.status(),
+                            reservation.totalPrice(),
+                            reservation.specialRequests(),
+                            existingReservation.confirmationCode(),
+                            existingReservation.createdAt(),
+                            null // Dejar que la BD use ubik_now() via trigger
+                    );
+
+                    Mono<Reservation> updateMono = setClientTimeInSession()
+                            .then(validateReservation(updatedReservation))
+                            .then(reservationRepositoryPort.update(updatedReservation));
+
                     if (datesChanged) {
                         return isRoomAvailable(existingReservation.roomId(),
                                 reservation.checkInDate(),
@@ -200,100 +208,81 @@ public class ReservationService implements ReservationUseCasePort {
                                         return Mono.error(new IllegalArgumentException(
                                                 "La habitación no está disponible para las nuevas fechas"));
                                     }
-                                    Reservation updatedReservation = new Reservation(
-                                            id,
-                                            existingReservation.roomId(),
-                                            existingReservation.userId(),
-                                            reservation.checkInDate(),
-                                            reservation.checkOutDate(),
-                                            existingReservation.status(),
-                                            reservation.totalPrice(),
-                                            reservation.specialRequests(),
-                                            existingReservation.confirmationCode(),
-                                            existingReservation.createdAt(),
-                                            LocalDateTime.now()
-                                    );
-                                    return validateReservation(updatedReservation)
-                                            .then(reservationRepositoryPort.update(updatedReservation));
+                                    return updateMono;
                                 });
                     } else {
-                        Reservation updatedReservation = new Reservation(
-                                id,
-                                existingReservation.roomId(),
-                                existingReservation.userId(),
-                                reservation.checkInDate(),
-                                reservation.checkOutDate(),
-                                existingReservation.status(),
-                                reservation.totalPrice(),
-                                reservation.specialRequests(),
-                                existingReservation.confirmationCode(),
-                                existingReservation.createdAt(),
-                                LocalDateTime.now()
-                        );
-                        return validateReservation(updatedReservation)
-                                .then(reservationRepositoryPort.update(updatedReservation));
+                        return updateMono;
                     }
-                });
+                })
+        );
     }
 
     @Override
     public Mono<Reservation> confirmReservation(Long id) {
-        return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+        return transactionalOperator.transactional(
+            reservationRepositoryPort.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada")))
                 .flatMap(reservation -> {
                     if (!reservation.canBeConfirmed()) {
-                        return Mono.error(new IllegalArgumentException(
-                                "La reserva no puede ser confirmada en su estado actual: " + reservation.status()));
+                        return Mono.error(new IllegalArgumentException("No se puede confirmar"));
                     }
                     Reservation confirmedReservation = reservation.withStatus(Reservation.ReservationStatus.CONFIRMED);
-                    return reservationRepositoryPort.update(confirmedReservation);
+                    return setClientTimeInSession()
+                            .then(reservationRepositoryPort.update(confirmedReservation));
                 })
-                .doOnNext(reservationSink::tryEmitNext);
+                .doOnNext(reservationSink::tryEmitNext)
+        );
     }
 
     @Override
     public Mono<Reservation> cancelReservation(Long id) {
-        return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+        return transactionalOperator.transactional(
+            reservationRepositoryPort.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada")))
                 .flatMap(reservation -> {
                     if (!reservation.canBeCancelled()) {
-                        return Mono.error(new IllegalArgumentException(
-                                "La reserva no puede ser cancelada en su estado actual: " + reservation.status()));
+                        return Mono.error(new IllegalArgumentException("No se puede cancelar"));
                     }
                     Reservation cancelledReservation = reservation.withStatus(Reservation.ReservationStatus.CANCELLED);
-                    return reservationRepositoryPort.update(cancelledReservation);
+                    return setClientTimeInSession()
+                            .then(reservationRepositoryPort.update(cancelledReservation));
                 })
-                .doOnNext(reservationSink::tryEmitNext);
+                .doOnNext(reservationSink::tryEmitNext)
+        );
     }
 
     @Override
     public Mono<Reservation> checkIn(Long id) {
-        return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+        return transactionalOperator.transactional(
+            reservationRepositoryPort.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada")))
                 .flatMap(reservation -> {
                     if (!reservation.canCheckIn()) {
-                        return Mono.error(new IllegalArgumentException(
-                                "No se puede hacer check-in en el estado actual: " + reservation.status()));
+                        return Mono.error(new IllegalArgumentException("No se puede hacer check-in"));
                     }
                     Reservation checkedInReservation = reservation.withStatus(Reservation.ReservationStatus.CHECKED_IN);
-                    return reservationRepositoryPort.update(checkedInReservation);
+                    return setClientTimeInSession()
+                            .then(reservationRepositoryPort.update(checkedInReservation));
                 })
-                .doOnNext(reservationSink::tryEmitNext);
+                .doOnNext(reservationSink::tryEmitNext)
+        );
     }
 
     @Override
     public Mono<Reservation> checkOut(Long id) {
-        return reservationRepositoryPort.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada con ID: " + id)))
+        return transactionalOperator.transactional(
+            reservationRepositoryPort.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Reserva no encontrada")))
                 .flatMap(reservation -> {
                     if (!reservation.canCheckOut()) {
-                        return Mono.error(new IllegalArgumentException(
-                                "No se puede hacer check-out en el estado actual: " + reservation.status()));
+                        return Mono.error(new IllegalArgumentException("No se puede hacer check-out"));
                     }
                     Reservation checkedOutReservation = reservation.withStatus(Reservation.ReservationStatus.CHECKED_OUT);
-                    return reservationRepositoryPort.update(checkedOutReservation);
+                    return setClientTimeInSession()
+                            .then(reservationRepositoryPort.update(checkedOutReservation));
                 })
-                .doOnNext(reservationSink::tryEmitNext);
+                .doOnNext(reservationSink::tryEmitNext)
+        );
     }
 
     @Override

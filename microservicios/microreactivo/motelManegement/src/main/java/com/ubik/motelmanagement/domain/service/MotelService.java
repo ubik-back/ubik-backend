@@ -7,7 +7,9 @@ import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.UserPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,11 +25,21 @@ public class MotelService implements MotelUseCasePort {
     private final MotelRepositoryPort motelRepositoryPort;
     private final NotificationPort notificationPort;
     private final UserPort userPort;
+    private final DatabaseClient databaseClient;
+    private final TransactionalOperator transactionalOperator;
 
-    public MotelService(NotificationPort notificationPort, UserPort userPort, MotelRepositoryPort motelRepositoryPort) {
+    public MotelService(
+            NotificationPort notificationPort, 
+            UserPort userPort, 
+            MotelRepositoryPort motelRepositoryPort,
+            DatabaseClient databaseClient,
+            TransactionalOperator transactionalOperator
+    ) {
         this.notificationPort = notificationPort;
         this.userPort = userPort;
         this.motelRepositoryPort = motelRepositoryPort;
+        this.databaseClient = databaseClient;
+        this.transactionalOperator = transactionalOperator;
     }
 
     @Override
@@ -35,9 +47,11 @@ public class MotelService implements MotelUseCasePort {
 
         log.info("Creando motel: {}", motel.name());
 
-        return validateMotel(motel)
-
+        return transactionalOperator.transactional(
+            setClientTimeInSession()
+                .then(validateMotel(motel))
                 .then(motelRepositoryPort.save(motel))
+        )
 
                 .flatMap(savedMotel ->
 
@@ -105,7 +119,8 @@ public class MotelService implements MotelUseCasePort {
     @Override
     public Mono<Motel> updateMotel(Long id, Motel motel) {
         log.info("Actualizando motel ID: {}", id);
-        return motelRepositoryPort.findById(id)
+        return transactionalOperator.transactional(
+            motelRepositoryPort.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Motel no encontrado con ID: " + id)))
                 .flatMap(existingMotel -> {
                     Motel updatedMotel = new Motel(
@@ -121,7 +136,7 @@ public class MotelService implements MotelUseCasePort {
                             motel.latitude(),
                             motel.longitude(),
                             motel.approvalStatus() != null ? motel.approvalStatus() : existingMotel.approvalStatus(),
-                            motel.approvalDate() != null ? motel.approvalDate() : existingMotel.approvalDate(),
+                            null, // null para que la BD use ubik_now() via trigger
                             motel.approvedByUserId() != null ? motel.approvedByUserId() : existingMotel.approvedByUserId(),
                             motel.rejectionReason(),
                             motel.rues(),
@@ -132,10 +147,23 @@ public class MotelService implements MotelUseCasePort {
                             motel.legalRepresentativeName(),
                             motel.legalDocumentUrl()
                     );
-                    return validateMotel(updatedMotel)
+                    return setClientTimeInSession()
+                            .then(validateMotel(updatedMotel))
                             .then(motelRepositoryPort.update(updatedMotel));
                 })
-                .doOnSuccess(updated -> log.info("Motel {} actualizado", id));
+        );
+    }
+
+    private Mono<Void> setClientTimeInSession() {
+        return Mono.deferContextual(ctx -> {
+            String clientTime = ctx.getOrDefault("X-Client-Time", null);
+            if (clientTime != null && !clientTime.isBlank()) {
+                return databaseClient.sql("SELECT set_config('ubik.client_time', :time, true)")
+                        .bind("time", clientTime)
+                        .then();
+            }
+            return Mono.empty();
+        });
     }
 
     @Override
