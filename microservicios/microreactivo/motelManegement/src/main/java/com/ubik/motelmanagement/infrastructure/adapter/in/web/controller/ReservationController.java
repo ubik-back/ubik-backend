@@ -18,7 +18,10 @@ import org.springframework.web.server.ServerWebExchange;  // ✅ AGREGAR
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -243,7 +246,20 @@ public class ReservationController {
      */
     @GetMapping("/owner/dashboard")
     public Mono<OwnerDashboardSummary> getDashboardSummary(@RequestParam Long motelId) {
-        return reservationUseCasePort.getDashboardSummary(motelId);
+        return Mono.deferContextual(ctx -> {
+            String clientTime = ctx.getOrDefault("X-Client-Time", null);
+            LocalDate today;
+            if (clientTime != null) {
+                try {
+                    today = ZonedDateTime.parse(clientTime).toLocalDate();
+                } catch (Exception e) {
+                    today = LocalDate.now();
+                }
+            } else {
+                today = LocalDate.now();
+            }
+            return reservationUseCasePort.getDashboardSummary(motelId, today);
+        });
     }
 
     /**

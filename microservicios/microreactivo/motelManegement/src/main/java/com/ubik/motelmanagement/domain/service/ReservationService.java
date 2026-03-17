@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
@@ -315,9 +315,10 @@ public class ReservationService implements ReservationUseCasePort {
     }
 
     @Override
-    public Mono<OwnerDashboardSummary> getDashboardSummary(Long motelId) {
+    public Mono<OwnerDashboardSummary> getDashboardSummary(Long motelId, LocalDate today) {
+        LocalDate startDate = today.minusDays(6);
         return Mono.zip(
-                reservationRepositoryPort.findTodayByMotelId(motelId).collectList(),
+                reservationRepositoryPort.findTodayByMotelId(motelId, today).collectList(),
                 roomRepositoryPort.findByMotelId(motelId).collectList()
         ).map(tuple -> {
             var reservations = tuple.getT1();
