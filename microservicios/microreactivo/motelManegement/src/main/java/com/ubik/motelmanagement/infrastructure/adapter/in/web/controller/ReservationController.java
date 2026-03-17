@@ -1,6 +1,8 @@
 package com.ubik.motelmanagement.infrastructure.adapter.in.web.controller;
 
+import com.ubik.motelmanagement.domain.model.OwnerDashboardSummary;
 import com.ubik.motelmanagement.domain.model.Reservation;
+import com.ubik.motelmanagement.domain.model.RoomStatusBoardResponse;
 import com.ubik.motelmanagement.domain.port.in.ReservationUseCasePort;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.CreateReservationRequest;
 import com.ubik.motelmanagement.infrastructure.adapter.in.web.dto.ReservationResponse;
@@ -233,5 +235,33 @@ public class ReservationController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteReservation(@PathVariable Long id) {
         return reservationUseCasePort.deleteReservation(id);
+    }
+
+    /**
+     * Obtiene el resumen del dashboard para un motel
+     * GET /api/reservations/owner/dashboard?motelId={motelId}
+     */
+    @GetMapping("/owner/dashboard")
+    public Mono<OwnerDashboardSummary> getDashboardSummary(@RequestParam Long motelId) {
+        return reservationUseCasePort.getDashboardSummary(motelId);
+    }
+
+    /**
+     * Obtiene el tablero de estado de habitaciones
+     * GET /api/reservations/owner/status-board?motelId={motelId}
+     */
+    @GetMapping("/owner/status-board")
+    public Flux<RoomStatusBoardResponse> getRoomStatusBoard(@RequestParam Long motelId) {
+        return reservationUseCasePort.getRoomStatusBoard(motelId);
+    }
+
+    /**
+     * Verifica una reserva por código de confirmación
+     * GET /api/reservations/confirm-code/{code}
+     */
+    @GetMapping("/confirm-code/{code}")
+    public Mono<ReservationResponse> getByConfirmationCode(@PathVariable String code) {
+        return reservationUseCasePort.getByConfirmationCode(code)
+                .map(reservationDtoMapper::toResponse);
     }
 }

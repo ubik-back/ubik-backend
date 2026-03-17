@@ -1,6 +1,8 @@
 package com.ubik.motelmanagement.domain.port.in;
 
+import com.ubik.motelmanagement.domain.model.OwnerDashboardSummary;
 import com.ubik.motelmanagement.domain.model.Reservation;
+import com.ubik.motelmanagement.domain.model.RoomStatusBoardResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -117,4 +119,10 @@ public interface ReservationUseCasePort {
      * @return Flux de reservas que se emiten cuando ocurren cambios
      */
     Flux<Reservation> getReservationStream();
+
+    Mono<OwnerDashboardSummary> getDashboardSummary(Long motelId);
+
+    Flux<RoomStatusBoardResponse> getRoomStatusBoard(Long motelId);
+
+    Mono<Reservation> getByConfirmationCode(String code);
 }

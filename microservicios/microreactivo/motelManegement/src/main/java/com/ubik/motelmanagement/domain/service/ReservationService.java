@@ -1,6 +1,8 @@
 package com.ubik.motelmanagement.domain.service;
 
+import com.ubik.motelmanagement.domain.model.OwnerDashboardSummary;
 import com.ubik.motelmanagement.domain.model.Reservation;
+import com.ubik.motelmanagement.domain.model.RoomStatusBoardResponse;
 import com.ubik.motelmanagement.domain.port.in.ReservationUseCasePort;
 import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.ReservationRepositoryPort;
@@ -17,6 +19,7 @@ import reactor.core.publisher.Sinks;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
 
 @Service
 public class ReservationService implements ReservationUseCasePort {
@@ -309,6 +312,81 @@ public class ReservationService implements ReservationUseCasePort {
     @Override
     public Flux<Reservation> getReservationStream() {
         return reservationSink.asFlux();
+    }
+
+    @Override
+    public Mono<OwnerDashboardSummary> getDashboardSummary(Long motelId) {
+        return Mono.zip(
+                reservationRepositoryPort.findTodayByMotelId(motelId).collectList(),
+                roomRepositoryPort.findByMotelId(motelId).collectList()
+        ).map(tuple -> {
+            var reservations = tuple.getT1();
+            var rooms = tuple.getT2();
+
+            var reservationsByStatus = reservations.stream()
+                    .collect(Collectors.groupingBy(r -> r.status().name(), Collectors.counting()));
+
+            var dailyRevenue = reservations.stream()
+                    .filter(r -> r.status() != Reservation.ReservationStatus.CANCELLED)
+                    .mapToDouble(Reservation::totalPrice)
+                    .sum();
+
+            var activeReservations = (long) reservations.size();
+            var totalRooms = (long) rooms.size();
+            var occupancyRate = totalRooms > 0 ? (double) activeReservations / totalRooms : 0.0;
+
+            return new OwnerDashboardSummary(
+                    reservationsByStatus,
+                    dailyRevenue,
+                    occupancyRate,
+                    totalRooms,
+                    activeReservations
+            );
+        });
+    }
+
+    @Override
+    public Flux<RoomStatusBoardResponse> getRoomStatusBoard(Long motelId) {
+        return roomRepositoryPort.findByMotelId(motelId)
+                .flatMap(room -> reservationRepositoryPort.findActiveReservationsByRoomId(room.id())
+                        .collectList()
+                        .map(reservations -> {
+                            RoomStatusBoardResponse.RoomStatus status = RoomStatusBoardResponse.RoomStatus.AVAILABLE;
+                            RoomStatusBoardResponse.ReservationInfo currentRes = null;
+
+                            if (!reservations.isEmpty()) {
+                                // Buscamos la reserva más relevante (ej. la que está en CHECKED_IN o la próxima CONFIRMED)
+                                var res = reservations.get(0); // Simplificación
+                                status = switch (res.status()) {
+                                    case CHECKED_IN -> RoomStatusBoardResponse.RoomStatus.OCCUPIED;
+                                    case CONFIRMED -> RoomStatusBoardResponse.RoomStatus.PENDING_CHECKIN;
+                                    default -> RoomStatusBoardResponse.RoomStatus.AVAILABLE;
+                                };
+
+                                currentRes = new RoomStatusBoardResponse.ReservationInfo(
+                                        res.id(),
+                                        "Invitado", // En el futuro podríamos cruzar con el nombre del usuario
+                                        res.confirmationCode(),
+                                        res.checkInDate(),
+                                        res.checkOutDate(),
+                                        res.status()
+                                );
+                            }
+
+                            return new RoomStatusBoardResponse(
+                                    room.id(),
+                                    room.number(),
+                                    room.roomType(),
+                                    status,
+                                    currentRes
+                            );
+                        }));
+    }
+
+    @Override
+    public Mono<Reservation> getByConfirmationCode(String code) {
+        return reservationRepositoryPort.findByConfirmationCode(code)
+                .switchIfEmpty(Mono.error(new RuntimeException("Código de confirmación no válido: " + code)));
     }
 
     /**
