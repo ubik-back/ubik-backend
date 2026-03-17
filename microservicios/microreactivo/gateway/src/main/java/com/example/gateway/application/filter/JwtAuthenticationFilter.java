@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
-        // 2. Extraer JWT del Authorization header o query param (para SSE)
+        // 2. Extraer JWT: 1) Authorization Header, 2) access_token query param, 3) token query param
         String token = null;
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
 
@@ -56,9 +56,15 @@ public class JwtAuthenticationFilter implements WebFilter {
         } else {
             // Soporte para EventSource (SSE) que no permite custom headers
             token = exchange.getRequest().getQueryParams().getFirst("access_token");
+            if (token == null) {
+                token = exchange.getRequest().getQueryParams().getFirst("token");
+            }
         }
 
+        if (token != null) token = token.trim();
+
         if (token == null || token.isEmpty()) {
+            System.out.println("No token found for path: " + path);
             return unauthorized(exchange);
         }
 
@@ -79,6 +85,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                     .header("X-User-Username", username)
                     .header("X-User-Role", role)
                     .header("X-User-Id", userId)
+                    .header("Authorization", "Bearer " + token) // Asegurar que llegue al microservicio
                     .build();
 
             ServerWebExchange mutatedExchange = exchange.mutate()
@@ -96,6 +103,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                     .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
 
         } catch (Exception e) {
+            System.err.println("JWT Verification failed: " + e.getMessage());
             return unauthorized(exchange);
         }
     }

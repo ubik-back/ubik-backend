@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/payments/*/refund").authenticated()
                         .anyExchange().authenticated()
                 )
-                .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .addFilterBefore(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }
 
