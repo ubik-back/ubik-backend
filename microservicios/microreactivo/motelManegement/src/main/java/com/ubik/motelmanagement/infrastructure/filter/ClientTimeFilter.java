@@ -22,6 +22,10 @@ public class ClientTimeFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String clientTime = exchange.getRequest().getHeaders().getFirst("X-Client-Time");
         
+        if (clientTime == null || clientTime.isBlank()) {
+            clientTime = exchange.getRequest().getQueryParams().getFirst("client_time");
+        }
+
         if (clientTime != null && !clientTime.isBlank()) {
             return chain.filter(exchange)
                     .contextWrite(ctx -> ctx.put(CLIENT_TIME_CONTEXT_KEY, clientTime));
