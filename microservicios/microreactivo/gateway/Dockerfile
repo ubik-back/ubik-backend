@@ -25,6 +25,7 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 RUN addgroup -S spring && adduser -S spring -G spring
+RUN apk add --no-cache wget
 USER spring:spring
 
 COPY --from=build /app/gateway/target/*.jar app.jar

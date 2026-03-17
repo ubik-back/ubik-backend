@@ -1,5 +1,7 @@
 package com.ubik.motelmanagement.infrastructure.filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -15,6 +17,7 @@ import java.time.format.DateTimeFormatter;
  */
 @Component
 public class ClientTimeFilter implements WebFilter {
+    private static final Logger log = LoggerFactory.getLogger(ClientTimeFilter.class);
 
     public static final String CLIENT_TIME_CONTEXT_KEY = "X-Client-Time";
 
@@ -27,6 +30,7 @@ public class ClientTimeFilter implements WebFilter {
         }
 
         if (clientTime != null && !clientTime.isBlank()) {
+            log.info("Sincronizando tiempo del cliente: {}", clientTime);
             return chain.filter(exchange)
                     .contextWrite(ctx -> ctx.put(CLIENT_TIME_CONTEXT_KEY, clientTime));
         }
