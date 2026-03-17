@@ -47,14 +47,20 @@ public class JwtAuthenticationFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
-        // 2. Extraer JWT del Authorization header
+        // 2. Extraer JWT del Authorization header o query param (para SSE)
+        String token = null;
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return unauthorized(exchange);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        } else {
+            // Soporte para EventSource (SSE) que no permite custom headers
+            token = exchange.getRequest().getQueryParams().getFirst("access_token");
         }
 
-        String token = authHeader.substring(7);
+        if (token == null || token.isEmpty()) {
+            return unauthorized(exchange);
+        }
 
         try {
             // 3. Validar token y extraer claims
