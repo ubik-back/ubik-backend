@@ -35,6 +35,7 @@ public class ClientTimeFilter implements WebFilter {
                     .contextWrite(ctx -> ctx.put(CLIENT_TIME_CONTEXT_KEY, clientTime));
         }
         
+        log.warn("No se recibió tiempo del cliente (X-Client-Time o client_time) para la ruta: {}", exchange.getRequest().getPath());
         return chain.filter(exchange);
     }
 }

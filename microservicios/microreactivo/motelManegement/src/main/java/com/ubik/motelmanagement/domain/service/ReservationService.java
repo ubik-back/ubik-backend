@@ -119,10 +119,12 @@ public class ReservationService implements ReservationUseCasePort {
         return Mono.deferContextual(ctx -> {
             String clientTime = ctx.getOrDefault("X-Client-Time", null);
             if (clientTime != null && !clientTime.isBlank()) {
+                log.info("Estableciendo ubik.client_time en sesión DB: {}", clientTime);
                 return databaseClient.sql("SELECT set_config('ubik.client_time', :time, true)")
                         .bind("time", clientTime)
                         .then();
             }
+            log.debug("No hay client_time en el contexto reactivo para esta operación.");
             return Mono.empty();
         });
     }

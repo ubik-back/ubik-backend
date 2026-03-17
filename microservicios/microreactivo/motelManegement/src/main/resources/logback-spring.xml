@@ -6,7 +6,7 @@
     <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <!-- Campos personalizados en cada log -->
-            <customFields>{"service":"${SERVICE_NAME}","environment":"${ACTIVE_PROFILE}"}</customFields>
+            <customFields>{"service":"${SERVICE_NAME:-unknown}","environment":"${SPRING_PROFILES_ACTIVE:-local}"}</customFields>
             <!-- Incluir traceId y spanId de Micrometer Tracing -->
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>

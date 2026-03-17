@@ -18,6 +18,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      SERVICE_NAME: usermanagement-service
+      MANAGEMENT_TRACING_ENABLED: "false"
       JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
       - ubik-network
@@ -50,6 +52,8 @@ services:
       ROLE_ID_ADMIN: ${ROLE_ID_ADMIN}
       ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
       ROLE_ID_USER: ${ROLE_ID_USER}
+      SERVICE_NAME: motel-management-service
+      MANAGEMENT_TRACING_ENABLED: "false"
       JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
       - ubik-network
@@ -75,6 +79,8 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SERVICE_NAME: notification-service
+      MANAGEMENT_TRACING_ENABLED: "false"
       JAVA_OPTS: "-Xmx512m -Xms256m"
     networks:
       - ubik-network
@@ -105,6 +111,8 @@ services:
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       MOTEL_MANAGEMENT_URL: ${MOTEL_MANAGEMENT_URL:-http://motel-management-service:8083}
+      SERVICE_NAME: payment-service
+      MANAGEMENT_TRACING_ENABLED: "false"
       JAVA_OPTS: "-Xmx512m -Xms256m"
     depends_on:
       motel-management-service:
@@ -139,6 +147,8 @@ services:
       ROLE_ID_PROPERTY_OWNER: ${ROLE_ID_PROPERTY_OWNER}
       ROLE_ID_USER: ${ROLE_ID_USER}
       FRONTEND_URL: ${FRONTEND_URL}
+      SERVICE_NAME: gateway
+      MANAGEMENT_TRACING_ENABLED: "false"
       JAVA_OPTS: "-Xmx512m -Xms256m"
     depends_on:
       usermanagement-service:
