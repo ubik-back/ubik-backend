@@ -20,7 +20,8 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       SERVICE_NAME: usermanagement-service
       MANAGEMENT_TRACING_ENABLED: "false"
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     networks:
       - ubik-network
     healthcheck:
@@ -54,7 +55,8 @@ services:
       ROLE_ID_USER: ${ROLE_ID_USER}
       SERVICE_NAME: motel-management-service
       MANAGEMENT_TRACING_ENABLED: "false"
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     networks:
       - ubik-network
     healthcheck:
@@ -81,7 +83,8 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       SERVICE_NAME: notification-service
       MANAGEMENT_TRACING_ENABLED: "false"
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     networks:
       - ubik-network
     healthcheck:
@@ -113,7 +116,8 @@ services:
       MOTEL_MANAGEMENT_URL: ${MOTEL_MANAGEMENT_URL:-http://motel-management-service:8083}
       SERVICE_NAME: payment-service
       MANAGEMENT_TRACING_ENABLED: "false"
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     depends_on:
       motel-management-service:
         condition: service_healthy
@@ -149,7 +153,8 @@ services:
       FRONTEND_URL: ${FRONTEND_URL}
       SERVICE_NAME: gateway
       MANAGEMENT_TRACING_ENABLED: "false"
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      TZ: America/Bogota
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=America/Bogota"
     depends_on:
       usermanagement-service:
         condition: service_healthy
