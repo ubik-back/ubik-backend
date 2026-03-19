@@ -24,17 +24,18 @@ public class ClientTimeFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String clientTime = exchange.getRequest().getHeaders().getFirst("X-Client-Time");
-        
+
         if (clientTime == null || clientTime.isBlank()) {
             clientTime = exchange.getRequest().getQueryParams().getFirst("client_time");
         }
 
         if (clientTime != null && !clientTime.isBlank()) {
-            log.info("Sincronizando tiempo del cliente: {}", clientTime);
+            final String resolvedTime = clientTime; // effectively final para el lambda
+            log.info("Sincronizando tiempo del cliente: {}", resolvedTime);
             return chain.filter(exchange)
-                    .contextWrite(ctx -> ctx.put(CLIENT_TIME_CONTEXT_KEY, clientTime));
+                    .contextWrite(ctx -> ctx.put(CLIENT_TIME_CONTEXT_KEY, resolvedTime));
         }
-        
+
         log.warn("No se recibió tiempo del cliente (X-Client-Time o client_time) para la ruta: {}", exchange.getRequest().getPath());
         return chain.filter(exchange);
     }
