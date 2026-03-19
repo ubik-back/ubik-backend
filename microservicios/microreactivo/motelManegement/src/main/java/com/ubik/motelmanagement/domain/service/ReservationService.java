@@ -8,7 +8,7 @@ import com.ubik.motelmanagement.domain.port.out.NotificationPort;
 import com.ubik.motelmanagement.domain.port.out.ReservationRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.RoomRepositoryPort;
 import com.ubik.motelmanagement.domain.port.out.UserPort;
-import com.ubik.motelmanagement.infrastructure.client.NotificationClient;
+
 import com.ubik.motelmanagement.infrastructure.service.ConfirmationCodeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,6 @@ public class ReservationService implements ReservationUseCasePort {
             ReservationRepositoryPort reservationRepositoryPort,
             RoomRepositoryPort roomRepositoryPort,
             ConfirmationCodeService confirmationCodeService,
-            NotificationClient notificationClient, 
             UserPort userPort,
             DatabaseClient databaseClient,
             TransactionalOperator transactionalOperator
@@ -52,7 +51,6 @@ public class ReservationService implements ReservationUseCasePort {
         this.reservationRepositoryPort = reservationRepositoryPort;
         this.roomRepositoryPort = roomRepositoryPort;
         this.confirmationCodeService = confirmationCodeService;
-        this.notificationClient = notificationClient;
         this.userPort = userPort;
         this.databaseClient = databaseClient;
         this.transactionalOperator = transactionalOperator;
