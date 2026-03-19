@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class ReservationService implements ReservationUseCasePort {
 
     private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
+    private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
     private final NotificationPort notificationPort;
     private final ReservationRepositoryPort reservationRepositoryPort;
     private final RoomRepositoryPort roomRepositoryPort;
@@ -399,7 +401,7 @@ public class ReservationService implements ReservationUseCasePort {
             return Mono.error(new IllegalArgumentException(
                     "La fecha de check-in debe ser anterior a la fecha de check-out"));
         }
-        if (reservation.checkInDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
+        if (reservation.checkInDate().isBefore(LocalDateTime.now(BOGOTA).minusMinutes(5))) {
             return Mono.error(new IllegalArgumentException(
                     "La fecha de check-in no puede ser en el pasado"));
         }
